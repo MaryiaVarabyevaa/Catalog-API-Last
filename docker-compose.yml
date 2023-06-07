@@ -1,0 +1,126 @@
+version: '3'
+
+services:
+
+  rmq:
+    image: rabbitmq:3-management
+    container_name: rmq
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 1s
+      retries: 20
+    networks:
+      - mynetwork
+
+  gateway:
+    container_name: gateway-api
+    depends_on:
+      rmq:
+        condition: service_healthy
+    restart: on-failure:5
+    links:
+      - rmq
+    build:
+      context: .
+      dockerfile: ./apps/gateway/Dockerfile
+    env_file:
+      - ./apps/gateway/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '5000:5000'
+    networks:
+      - mynetwork
+
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+    depends_on:
+      rmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/auth/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      mynetwork:
+
+  order:
+    container_name: order
+    build:
+      context: .
+      dockerfile: ./apps/order/Dockerfile
+    depends_on:
+      rmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/order/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      mynetwork:
+
+  catalog:
+    container_name: catalog
+    build:
+      context: .
+      dockerfile: ./apps/catalog/Dockerfile
+    depends_on:
+      rmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/catalog/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      mynetwork:
+
+  catalog-request:
+    container_name: catalog-request
+    build:
+      context: .
+      dockerfile: ./apps/catalog-request/Dockerfile
+    depends_on:
+      rmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/catalog-request/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      mynetwork:
+
+  cart:
+    container_name: cart
+    build:
+      context: .
+      dockerfile: ./apps/cart/Dockerfile
+    depends_on:
+      rmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/cart/.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      mynetwork:
+
+networks:
+  mynetwork:
+    driver: bridge
