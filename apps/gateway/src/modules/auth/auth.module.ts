@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
-import {getRmqConfig} from "@app/common";
+import {GraphQLModule} from "@nestjs/graphql";
+import {ApolloDriver} from "@nestjs/apollo";
+import {AuthResolver} from "./auth.resolver";
 
 
 @Module({
   imports: [
-    // RabbitMQModule.forRoot(RabbitMQModule, getRmqConfig('auth', 'topic')),
-    // RabbitMQModule.forRootWithConfig('auth', 'topic')
     RabbitMQModule.forRoot(RabbitMQModule, {
       exchanges: [
         {
@@ -18,8 +17,13 @@ import {getRmqConfig} from "@app/common";
       ],
       uri: 'amqp://rmq',
     }),
+    GraphQLModule.forRoot({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      sortSchema: true,
+      playground: true
+    }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService, AuthResolver]
 })
 export class AuthModule {}
