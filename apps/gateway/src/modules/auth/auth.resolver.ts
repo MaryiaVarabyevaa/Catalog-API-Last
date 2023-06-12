@@ -19,9 +19,9 @@ export class AuthResolver {
     ) {}
 
     @Query(() => [User])
-    async getAllUser(
+    async greet(
     ) {
-        return this.authService.getAllUsers();
+        return 'Hello';
     }
 
     @Mutation(() => Boolean)

@@ -5,7 +5,7 @@ export const setCookies = (
     res: Response,
     rt: string,
     at: string,
-) => {
+): void => {
 
     res.cookie('rt', rt, {
         expires: rtExpiration,

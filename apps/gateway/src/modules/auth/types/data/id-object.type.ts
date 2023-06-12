@@ -1,0 +1,3 @@
+interface IdObject {
+    id: number;
+}

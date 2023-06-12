@@ -10,8 +10,8 @@ import {
 import {WINSTON_MODULE_NEST_PROVIDER} from "nest-winston";
 import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
 import {ErrorMessage, exchange, RoutingKey} from "./constants";
-import {CreateUserInput, LoginUserInput, UserIdInput} from "./dtos";
-import {TokenPair} from "./types";
+import {CreateUserInput, LoginUserInput} from "./dtos";
+import {DataType, TokenPair} from "./types";
 
 
 @Injectable()
@@ -42,10 +42,10 @@ export class AuthService {
         return res;
     }
 
-    async logout(userId: number): Promise<void> {
-        this.logger.log(`Logout user with ${userId} id`);
-        await this.sendMessage(RoutingKey.LOGOUT, { userId });
-        this.logger.log(`User with ${userId} id logged out successfully`);
+    async logout(id: number): Promise<void> {
+        this.logger.log(`Logout user with ${id} id`);
+        await this.sendMessage(RoutingKey.LOGOUT, { id });
+        this.logger.log(`User with ${id} id logged out successfully`);
     }
 
     async refreshTokens(id: number, rt: string): Promise<TokenPair> {
@@ -59,16 +59,11 @@ export class AuthService {
         return res;
     }
 
-    async getAllUsers() {
-        const res = await this.sendMessageWithResponse(RoutingKey.GEL_ALL_USERS, {});
-        return res;
-    }
-
 
     private async sendMessageWithResponse(
         routingKey: RoutingKey,
-        data: any,
-    ): Promise<TokenPair | any> {
+        data: DataType,
+    ): Promise<TokenPair> {
         return await this.amqpConnection.request({
             exchange,
             routingKey,
@@ -78,8 +73,8 @@ export class AuthService {
 
     private async sendMessage(
         routingKey: RoutingKey,
-        data: any,
-    ) {
+        data: DataType,
+    ): Promise<void> {
         await this.amqpConnection.publish(exchange, routingKey, { ...data });
     }
 }
