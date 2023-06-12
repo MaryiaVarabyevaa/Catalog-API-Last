@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
+import {UserModule} from "../user/user.module";
+import {GraphQLModule} from "@nestjs/graphql";
+import {ApolloDriver} from "@nestjs/apollo";
+import {TokenModule} from "../token/token.module";
 // import {RabbitMQModule} from "@app/common";
 
 @Module({
@@ -12,10 +16,11 @@ import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
           type: 'topic',
         },
       ],
-      // uri: 'amqp://127.0.0.1',
-      uri: 'amqp://rmq',
+      uri: 'amqp://127.0.0.1',
+      // uri: 'amqp://rmq',
     }),
-    // RabbitMQModule.forRootWithConfig('auth', 'topic')
+    UserModule,
+    TokenModule
   ],
   providers: [AuthService]
 })
