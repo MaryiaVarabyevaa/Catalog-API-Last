@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { OrderService } from './order.service';
-import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Details, Order } from './entities';
+import { StripeModule } from '../stripe/stripe.module';
 
 @Module({
   imports: [
@@ -11,10 +14,12 @@ import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
           type: 'topic',
         },
       ],
-      // uri: 'amqp://127.0.0.1',
-      uri: 'amqp://rmq',
+      uri: 'amqp://127.0.0.1',
+      // uri: 'amqp://rmq',
     }),
+    TypeOrmModule.forFeature([Order, Details]),
+    StripeModule,
   ],
-  providers: [OrderService]
+  providers: [OrderService],
 })
 export class OrderModule {}
