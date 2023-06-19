@@ -1,37 +1,28 @@
-import {Inject, Injectable, LoggerService, UnauthorizedException} from '@nestjs/common';
-import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
-import {ErrorMessage, exchange, RoutingKey} from "./constants";
-import {WINSTON_MODULE_NEST_PROVIDER} from "nest-winston";
-
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { AUTH_SERVICE, ErrorMessage, Pattern } from './constants';
+import { Data, IUser } from './types';
 
 @Injectable()
 export class UserService {
+  constructor(@Inject(AUTH_SERVICE) private authClient: ClientProxy) {}
 
-    constructor(
-        @Inject(WINSTON_MODULE_NEST_PROVIDER)
-        private readonly logger: LoggerService,
-        private readonly amqpConnection: AmqpConnection,
-    ) {}
-
-    async validateUser(email: string, password: string) {
-        this.logger.log(`Validate user with ${email} email`);
-        const res = await this.sendMessage(RoutingKey.VALIDATE_USER,{ email, password });
-        if (!res) {
-            this.logger.error(`User entered an incorrect email or password`);
-            throw new UnauthorizedException();
-        }
-        this.logger.log(`User with ${email} passed validation successfully`);
-        return res;
+  async validateUser(email: string, password: string): Promise<IUser | null> {
+    const res = await this.sendMessageToAuthClient(Pattern.VALIDATE_USER, {
+      email,
+      password,
+    });
+    if (!res) {
+      throw new UnauthorizedException(ErrorMessage.UNAUTHORIZED);
     }
+    return res;
+  }
 
-    private async sendMessage(
-        routingKey: RoutingKey,
-        data: any
-    ) {
-        return await this.amqpConnection.request({
-            exchange,
-            routingKey,
-            payload: {data}
-        });
-    }
+  private async sendMessageToAuthClient(
+    msg: Pattern,
+    data: Data,
+  ): Promise<IUser | null> {
+    const pattern = { cmd: msg };
+    return await this.authClient.send(pattern, { data }).toPromise();
+  }
 }

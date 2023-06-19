@@ -1,30 +1,63 @@
-import {Inject, Injectable, LoggerService} from '@nestjs/common';
-import {WINSTON_MODULE_NEST_PROVIDER} from "nest-winston";
-import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
+import {Inject, Injectable,} from '@nestjs/common';
+import {ClientProxy} from "@nestjs/microservices";
+import {CreateProductInput, DeleteProductInput, GetProductArgs, UpdateProductInput,} from './dtos';
+import {CATALOG_REQUEST_SERVICE, Pattern} from "./constants";
+import {Data} from "./types";
+import {ProductEntity} from "./entities/product.entity";
+
 
 @Injectable()
 export class CatalogService {
+  constructor(
+      @Inject(CATALOG_REQUEST_SERVICE) private catalogClient: ClientProxy,
+  ) {}
 
-    constructor(
-        @Inject(WINSTON_MODULE_NEST_PROVIDER)
-        private readonly logger: LoggerService,
-        private readonly amqpConnection: AmqpConnection,
-    ) {}
+  async createProduct(createProductInput: CreateProductInput): Promise<ProductEntity> {
+    const res = await this.sendMessage(Pattern.CREATE_PRODUCT, createProductInput);
+    return res;
+  }
 
-    async addProduct() {
-        await this.sendMessage('catalog', 'add-product-route', {})
-    }
+  async updateProduct(updateProductInput: UpdateProductInput) {
+    // const updatedProduct = await this.sendMessageWithResponse(
+    //   RoutingKey.UPDATE_PRODUCT,
+    //   updateProductInput,
+    // );
+    // if (updatedProduct) {
+    //   throw new NotFoundException(ErrorMessage.NOT_FOUNT);
+    // }
+    // return updatedProduct;
+  }
 
+  async deleteProduct(deleteProductInput: DeleteProductInput) {
+    // const res = await this.sendMessageWithResponse(
+    //   RoutingKey.DELETE_PRODUCT,
+    //   deleteProductInput,
+    // );
+    // if (!res) {
+    //   throw new NotFoundException(ErrorMessage.NOT_FOUNT);
+    // }
+    // return res;
+  }
 
-    async getProducts() {
-        await this.sendMessage('catalog', 'catalog-route', {})
-    }
+  async findProductById(getProductArgs: GetProductArgs) {
+    // const res = await this.sendMessageWithResponse(
+    //   RoutingKey.FIND_PRODUCT_BY_ID,
+    //   getProductArgs,
+    // );
+    // return res;
+  }
 
-    private async sendMessage(
-        exchange: string,
-        routingKey: string,
-        data: any,
-    ) {
-        await this.amqpConnection.publish(exchange, routingKey, { data });
-    }
+  //
+  // async findAllProducts() {
+  //   await this.sendMessage(RoutingKey.FIND_ALL_PRODUCTS, {});
+  //   return 'find all products route';
+  // }
+
+  private async sendMessage(
+      msg: Pattern,
+      data: Data,
+  ): Promise<ProductEntity> {
+    const pattern = { cmd: msg };
+    return await this.catalogClient.send(pattern, { data }).toPromise();
+  }
 }

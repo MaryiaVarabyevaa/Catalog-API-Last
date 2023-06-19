@@ -1,4 +1,4 @@
 export interface TokenPair {
-    rt: string;
-    at: string;
+  rt: string;
+  at: string;
 }

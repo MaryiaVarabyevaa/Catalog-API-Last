@@ -5,5 +5,6 @@ export class GetOrderIdInput {
   @Field(() => ID)
   id: number;
 
+  @Field(() => String)
   paymentMethodId: string;
 }

@@ -7,7 +7,6 @@ import {
   PayOrderInput,
   UpdateOrderInput,
 } from './dtos';
-import { Status } from './types';
 import { UseGuards } from '@nestjs/common';
 import { AtGuard } from '../auth/guards';
 import { GetCurrentUserId } from '../auth/decorators';
@@ -16,24 +15,18 @@ import { GetCurrentUserId } from '../auth/decorators';
 export class OrderResolver {
   constructor(private readonly orderService: OrderService) {}
 
-
   @Query(() => Boolean)
   @UseGuards(AtGuard)
-  async getAllUserOrders(
-      @GetCurrentUserId() userId: number,
-  ):
-      Promise<boolean> {
+  async getAllUserOrders(@GetCurrentUserId() userId: number): Promise<boolean> {
     const res = await this.orderService.getAllUserOrder(userId);
     return true;
   }
 
-
   @Query(() => Boolean)
   @UseGuards(AtGuard)
   async getLatestUserOrder(
-      @GetCurrentUserId() userId: number,
-  ):
-      Promise<boolean> {
+    @GetCurrentUserId() userId: number,
+  ): Promise<boolean> {
     const res = await this.orderService.getLatestUserOrder(userId);
     return true;
   }
@@ -71,5 +64,4 @@ export class OrderResolver {
     const res = await this.orderService.payOrder(payOrderInput);
     return true;
   }
-
 }

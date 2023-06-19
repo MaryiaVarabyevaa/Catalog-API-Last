@@ -1,3 +1,3 @@
 interface IdObject {
-    id: number;
+  id: number;
 }

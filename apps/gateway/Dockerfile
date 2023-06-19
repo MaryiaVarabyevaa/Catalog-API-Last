@@ -1,4 +1,4 @@
-FROM node:alpine As development
+FROM node:lts
 
 WORKDIR /usr/src/app
 
@@ -11,3 +11,4 @@ COPY . .
 RUN npm run build gateway
 
 CMD ["npm", "run", "start:dev", "gateway"]
+#CMD ["npm", "run", "start:debug"]

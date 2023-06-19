@@ -1,21 +1,14 @@
 import { Module } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { CartController } from './cart.controller';
-import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
+import { RmqModule } from '@app/common';
+import { CART_SERVICE } from './constants';
 
 @Module({
   imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'cart',
-          type: 'topic',
-        },
-      ],
-      uri: 'amqp://rmq',
+    RmqModule.register({
+      name: CART_SERVICE,
     }),
   ],
   providers: [CartService],
-  controllers: [CartController]
 })
 export class CartModule {}

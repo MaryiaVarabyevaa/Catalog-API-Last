@@ -1,19 +1,20 @@
-import {Inject, Injectable, LoggerService} from '@nestjs/common';
-import {WINSTON_MODULE_NEST_PROVIDER} from 'nest-winston';
-import {AmqpConnection} from '@golevelup/nestjs-rabbitmq';
-import {exchange, RoutingKey} from './constants';
-import {CreateOrderInput, GetOrderIdInput, PayOrderInput, UpdateOrderInput,} from './dtos';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { ORDER_SERVICE, Pattern } from './constants';
+import {
+  CreateOrderInput,
+  GetOrderIdInput,
+  PayOrderInput,
+  UpdateOrderInput,
+} from './dtos';
+import { Data } from './types';
 
 @Injectable()
 export class OrderService {
-  constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER)
-    private readonly logger: LoggerService,
-    private readonly amqpConnection: AmqpConnection,
-  ) {}
+  constructor(@Inject(ORDER_SERVICE) private authClient: ClientProxy) {}
 
   async createOrder(createOrderInput: CreateOrderInput, userId: number) {
-    const res = await this.sendMessageWithResponse(RoutingKey.CREATE_ORDER, {
+    const res = await this.sendMessage(Pattern.CREATE_ORDER, {
       ...createOrderInput,
       userId,
     });
@@ -21,7 +22,7 @@ export class OrderService {
   }
 
   async updateOrder(updateOrderInput: UpdateOrderInput, userId: number) {
-    const res = await this.sendMessageWithResponse(RoutingKey.UPDATE_ORDER, {
+    const res = await this.sendMessage(Pattern.UPDATE_ORDER, {
       ...updateOrderInput,
       userId,
     });
@@ -29,39 +30,29 @@ export class OrderService {
   }
 
   async deleteOrder(getOrderIdInput: GetOrderIdInput) {
-    const res = await this.sendMessageWithResponse(
-      RoutingKey.DELETE_ORDER,
-      getOrderIdInput,
-    );
+    const res = await this.sendMessage(Pattern.DELETE_ORDER, getOrderIdInput);
     return res;
   }
 
   async payOrder(payOrderInput: PayOrderInput) {
-    const res = await this.sendMessageWithResponse(
-      RoutingKey.PAY_ORDER,
-      payOrderInput,
-    );
+    const res = await this.sendMessage(Pattern.PAY_ORDER, payOrderInput);
     return res;
   }
 
   async getAllUserOrder(userId: number) {
-    const res = await this.sendMessageWithResponse(
-        RoutingKey.GET_ALL_ORDER_BY_USER_ID,
-        { userId }
-    )
+    const res = await this.sendMessage(Pattern.GET_ALL_USER_ORDERS, { userId });
     return res;
   }
 
   async getLatestUserOrder(userId: number) {
-    await this.sendMessageWithResponse(RoutingKey.GET_ORDER_BY_USER_ID, { userId });
-    return 'getOrderByUserId';
+    const res = await this.sendMessage(Pattern.GET_LATEST_USER_ORDER, {
+      userId,
+    });
+    return res;
   }
 
-  private async sendMessageWithResponse(routingKey: RoutingKey, data: any) {
-    return await this.amqpConnection.request({
-      exchange,
-      routingKey,
-      payload: { ...data },
-    });
+  private async sendMessage(msg: Pattern, data: Data) {
+    const pattern = { cmd: msg };
+    return await this.authClient.send(pattern, { data }).toPromise();
   }
 }

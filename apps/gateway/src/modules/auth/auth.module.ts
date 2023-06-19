@@ -1,47 +1,42 @@
-import {Module} from '@nestjs/common';
-import {AuthService} from './auth.service';
-import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
-import {GraphQLModule} from "@nestjs/graphql";
-import {ApolloDriver} from "@nestjs/apollo";
-import {AuthResolver} from "./auth.resolver";
-import {UserModule} from "../user/user.module";
-import {PassportModule} from "@nestjs/passport";
-import {AtStrategy, LocalAuthStrategy, RtStrategy} from "./strategies";
-import {SessionSerializer} from "./utils";
-import {JwtModule} from "@nestjs/jwt";
-
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver } from '@nestjs/apollo';
+import { AuthResolver } from './auth.resolver';
+import { UserModule } from '../user/user.module';
+import { PassportModule } from '@nestjs/passport';
+import { AtStrategy, LocalAuthStrategy, RtStrategy } from './strategies';
+import { SessionSerializer } from './utils';
+import { JwtModule } from '@nestjs/jwt';
+import { RmqModule } from '@app/common';
+import { AUTH_SERVICE } from './constants';
 
 @Module({
   imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'auth',
-          type: 'topic',
-        },
-      ],
-      uri: 'amqp://127.0.0.1',
-      // uri: 'amqp://rmq',
+    RmqModule.register({
+      name: AUTH_SERVICE,
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       autoSchemaFile: true,
       sortSchema: true,
       playground: true,
-      context: ({ req, res }) => ({ req, res })
+      context: ({ req, res }) => ({ req, res }),
     }),
     PassportModule.register({
-      session: true
+      session: true,
     }),
     JwtModule.register({}),
     UserModule,
-    PassportModule
+    PassportModule,
   ],
-  providers: [AuthService, AuthResolver,
+  providers: [
+    AuthService,
+    AuthResolver,
     LocalAuthStrategy,
     SessionSerializer,
-      AtStrategy,
-      RtStrategy
-  ]
+    AtStrategy,
+    RtStrategy,
+  ],
 })
 export class AuthModule {}

@@ -1,21 +1,15 @@
 import { Module } from '@nestjs/common';
-import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { OrderService } from './order.service';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
 import { OrderResolver } from './order.resolver';
+import { RmqModule } from '@app/common';
+import { ORDER_SERVICE } from './constants';
 
 @Module({
   imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'order',
-          type: 'topic',
-        },
-      ],
-      // uri: 'amqp://rmq',
-      uri: 'amqp://127.0.0.1',
+    RmqModule.register({
+      name: ORDER_SERVICE,
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,

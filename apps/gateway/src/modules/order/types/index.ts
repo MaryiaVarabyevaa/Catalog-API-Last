@@ -1,1 +1,2 @@
-export * from './status.type';
+export * from './data.type';
+export * from './user-id.type';

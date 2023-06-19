@@ -1,3 +1,3 @@
 export enum ErrorMessage {
-    UNAUTHORIZED = 'Credentials are not valid.'
+  UNAUTHORIZED = 'Credentials are not valid.',
 }
