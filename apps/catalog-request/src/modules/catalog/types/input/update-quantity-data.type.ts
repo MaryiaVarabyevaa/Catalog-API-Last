@@ -1,4 +1,4 @@
-export interface UpdateQuantity {
+export interface UpdateQuantityData {
   id: number;
   rightQuantity: number;
 }

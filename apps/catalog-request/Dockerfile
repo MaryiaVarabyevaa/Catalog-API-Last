@@ -1,4 +1,4 @@
-FROM node:alpine As development
+FROM node:lts
 
 WORKDIR /usr/src/app
 
@@ -8,6 +8,6 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build catalog-request
+RUN npm run build product-request
 
 CMD ["npm", "run", "start:dev", "catalog-request"]

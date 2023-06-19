@@ -1,20 +1,19 @@
 import { Module } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
-import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Product } from './entities';
+import { CatalogController } from './catalog.controller';
+import { RmqModule } from '@app/common';
+import { CATALOG_SERVICE } from './constants';
 
 @Module({
   imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'catalog',
-          type: 'topic',
-        },
-      ],
-      // uri: 'amqp://127.0.0.1',
-      uri: 'amqp://rmq',
+    RmqModule.register({
+      name: CATALOG_SERVICE,
     }),
+    TypeOrmModule.forFeature([Product]),
   ],
-  providers: [CatalogService]
+  providers: [CatalogService],
+  controllers: [CatalogController],
 })
 export class CatalogModule {}

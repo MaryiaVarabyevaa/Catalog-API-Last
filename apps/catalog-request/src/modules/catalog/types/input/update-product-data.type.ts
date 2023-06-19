@@ -1,5 +1,5 @@
-import { CreateProduct } from './create-product-data.type';
+import { CreateProductData } from './create-product-data.type';
 
-export interface UpdateProduct extends CreateProduct {
+export interface UpdateProductData extends CreateProductData {
   id: number;
 }
