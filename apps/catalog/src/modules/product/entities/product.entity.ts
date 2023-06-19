@@ -1,25 +1,32 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import { Column, Entity, Index, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity()
 export class Product {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name: string;
+  @Index()
+  @Column()
+  @Unique(['name'])
+  name: string;
 
-    @Column()
-    description: string;
+  @Index()
+  @Column()
+  description: string;
 
-    @Column()
-    price: number;
+  @Index()
+  @Column()
+  price: number;
 
-    @Column()
-    currency: string;
+  @Column()
+  currency: string;
 
-    @Column()
-    img_url: string;
+  @Column()
+  img_url: string;
 
-    @Column()
-    quantity: number;
+  @Column()
+  totalQuantity: number;
+
+  @Column()
+  availableQuantity: number;
 }

@@ -1,6 +1,6 @@
 import { Currency } from '../currency.type';
 
-export interface CreateProductType {
+export interface CreateProductData {
   name: string;
   description: string;
   currency: Currency;

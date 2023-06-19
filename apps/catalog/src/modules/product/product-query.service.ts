@@ -1,67 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import {RabbitRPC, RabbitSubscribe} from '@golevelup/nestjs-rabbitmq';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities';
 import { Repository } from 'typeorm';
-import { exchange, Queue, RoutingKey } from './constants';
-import {FindProductById} from "./types";
-import {resolveObjMapThunk} from "graphql/type";
+import { FindProductByIdData } from './types';
 
 @Injectable()
-export class ProductService {
+export class ProductQueryService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  @RabbitRPC({
-    exchange,
-    routingKey: RoutingKey.FIND_ALL_PRODUCTS,
-    queue: Queue.FIND_ALL_PRODUCTS,
-  })
-  async handleFindAllProducts(msg: any) {
-    const res = await this.productRepository.find();
-    console.log(res);
-    console.log('find all products route');
+  async findAllProducts(
+    page: number = 1,
+    pageSize: number = 10,
+    sortField: string = 'name',
+    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    filter: any = {},
+  ) {
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy(sortField, sortOrder);
+
+    Object.keys(filter).forEach((key) => {
+      query.andWhere(`product.${key} LIKE :${key}`, {
+        [key]: `%${filter[key]}%`,
+      });
+    });
+
+    const products = await query.getManyAndCount();
+
+    return products;
   }
 
-  @RabbitRPC({
-    exchange,
-    routingKey: RoutingKey.FIND_PRODUCT_BY_ID,
-    queue: Queue.FIND_PRODUCT_BY_ID,
-  })
-  async handleFindProductById({ id }: FindProductById) {
+  async findProductById({ id }: FindProductByIdData): Promise<Product> {
     const product = await this.productRepository.findOne({ where: { id } });
     return product;
-  }
-
-  @RabbitRPC({
-    exchange,
-    routingKey: RoutingKey.PRODUCT_CREATED,
-    queue: Queue.PRODUCT_CREATED,
-  })
-  async handleCreateProduct(msg: any) {
-    console.log(msg)
-   return true;
-  }
-
-  @RabbitRPC({
-    exchange,
-    routingKey: RoutingKey.PRODUCT_UPDATED,
-    queue: Queue.PRODUCT_UPDATED,
-  })
-  async handleUpdatedProduct(msg: any) {
-    console.log(msg)
-    return true;
-  }
-
-  @RabbitRPC({
-    exchange,
-    routingKey: RoutingKey.PRODUCT_DELETED,
-    queue: Queue.PRODUCT_DELETED
-  })
-  async handleDeletedProduct(msg: any) {
-    console.log(msg)
-    return true;
   }
 }

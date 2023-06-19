@@ -1,3 +1,3 @@
-export interface DeleteProduct {
+export interface DeleteProductData {
   id: number;
 }
