@@ -1,1 +1,1 @@
-export * from "./update-catalog.saga";
+export * from './update-catalog.saga';

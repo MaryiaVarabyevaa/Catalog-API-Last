@@ -48,10 +48,9 @@ export class CatalogController {
   async handleDeleteProduct(
     @GetData() deleteProductData: DeleteProductData,
     @Ctx() context: RmqContext,
-  ): Promise<boolean> {
-    const res = await this.catalogService.deleteProduct(deleteProductData);
+  ): Promise<void> {
+    await this.catalogService.deleteProduct(deleteProductData);
     this.rmqService.ack(context);
-    return res;
   }
 
   @MessagePattern({ cmd: Pattern.PRODUCT_QUANTITY_CHANGED })

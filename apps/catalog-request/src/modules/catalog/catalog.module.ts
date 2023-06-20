@@ -5,7 +5,7 @@ import { Product } from './entities';
 import { CatalogController } from './catalog.controller';
 import { RmqModule } from '@app/common';
 import { CATALOG_SERVICE } from './constants';
-import {TransactionHelper} from "./helpers";
+import { SendMessageHelper } from './helpers';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import {TransactionHelper} from "./helpers";
     }),
     TypeOrmModule.forFeature([Product]),
   ],
-  providers: [CatalogService, TransactionHelper],
+  providers: [CatalogService, SendMessageHelper],
   controllers: [CatalogController],
 })
 export class CatalogModule {}

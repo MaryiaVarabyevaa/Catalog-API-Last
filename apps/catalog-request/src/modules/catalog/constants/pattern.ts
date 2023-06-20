@@ -7,4 +7,10 @@ export enum Pattern {
   PRODUCT_UPDATED = 'product-updated',
   PRODUCT_DELETED = 'product-deleted',
   PRODUCT_QUANTITY_CHANGED = 'product-quantity-changed',
+
+  ROLLBACK_DELETE_NEW_PRODUCT = 'rollback-delete-new-product',
+  ROLLBACK_PRODUCT = 'rollback-product',
+  ROLLBACK_DELETE_PRODUCT = 'rollback-delete-product',
+
+  COMMIT_PRODUCT = 'commit-update-product',
 }
