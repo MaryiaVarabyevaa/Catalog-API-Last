@@ -1,29 +1,8 @@
-import { UpdateCatalogState } from './update-catalog.state';
-import { Pattern } from '../constants';
-import { Product } from '../entities';
-import {CreateProductData} from "../../../../../catalog/src/modules/product/types";
+import {UpdateCatalogState} from './update-catalog.state';
+import {Product} from '../entities';
+import {CreateProductData} from "../types";
 
 export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
-  // async makeOperation(): Promise<Product> {
-  //   return this.saga.transactionHelper.runInTransaction(async () => {
-  //     const productInfo = this.saga.data as CreateProductData;
-  //
-  //     const newProduct = await this.saga.productRepository.create({
-  //       ...productInfo,
-  //       availableQuantity: productInfo.totalQuantity,
-  //     });
-  //
-  //     await this.saga.rmqService
-  //       .send({ cmd: Pattern.PRODUCT_CREATED }, { data: productInfo })
-  //       .toPromise();
-  //
-  //     // Random error
-  //
-  //     const savedProduct = await this.saga.productRepository.save(newProduct);
-  //
-  //     return savedProduct;
-  //   });
-  // }
 
   async makeOperation(): Promise<Product> {
     let product: Product;
@@ -42,9 +21,7 @@ export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
       newProduct.totalQuantity = productInfo.totalQuantity;
       newProduct.availableQuantity = productInfo.totalQuantity;
 
-      product = await this.saga.rmqService
-        .send({ cmd: Pattern.PRODUCT_CREATED }, { data: productInfo })
-        .toPromise();
+      product = await this.saga.sendMessageHelper.createProduct(productInfo);
 
       const savedProduct = await queryRunner.manager.save(newProduct);
 
@@ -52,9 +29,7 @@ export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
       return savedProduct;
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      await this.saga.rmqService
-          .send({ cmd: Pattern.ROLLBACK_DELETE_PRODUCT }, { data: { id: product.id } })
-          .toPromise();
+      await this.saga.sendMessageHelper.rollbackDeleteProduct({ id: product.id });
     } finally {
       await queryRunner.release();
     }
