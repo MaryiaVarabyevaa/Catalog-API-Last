@@ -6,4 +6,10 @@ export enum Pattern {
 
   FIND_PRODUCT_BY_ID = 'find-product-by-id',
   FIND_ALL_PRODUCTS = 'find-all-products',
+
+  ROLLBACK_DELETE_NEW_PRODUCT = 'rollback-delete-new-product',
+  ROLLBACK_PRODUCT = 'rollback-product',
+  ROLLBACK_DELETE_PRODUCT = 'rollback-delete-product',
+
+  COMMIT_PRODUCT = 'commit-update-product',
 }

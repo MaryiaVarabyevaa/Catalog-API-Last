@@ -1,10 +1,5 @@
-import { Controller } from '@nestjs/common';
-import {
-  Ctx,
-  EventPattern,
-  MessagePattern,
-  RmqContext,
-} from '@nestjs/microservices';
+import { Controller, UseInterceptors } from '@nestjs/common';
+import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import { RmqService } from '@app/common';
 import { Pattern } from './constants';
 import {
@@ -18,7 +13,9 @@ import { GetData } from './decorators';
 import { ProductQueryService } from './product-query.service';
 import { ProductRequestService } from './product-request.service';
 import { Product } from './entities';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
+@UseInterceptors(CacheInterceptor)
 @Controller()
 export class ProductController {
   constructor(
@@ -28,6 +25,8 @@ export class ProductController {
   ) {}
 
   @MessagePattern({ cmd: Pattern.FIND_PRODUCT_BY_ID })
+  // @CacheKey('')
+  // @CacheTTL()
   async handleFindProductById(
     @GetData() findProductByIdData: FindProductByIdData,
     @Ctx() context: RmqContext,
@@ -53,12 +52,15 @@ export class ProductController {
   async handleCreateProduct(
     @GetData() createProductData: CreateProductData,
     @Ctx() context: RmqContext,
-  ): Promise<void> {
-    await this.productRequestService.createProduct(createProductData);
+  ): Promise<Product> {
+    const res = await this.productRequestService.createProduct(
+      createProductData,
+    );
     this.rmqService.ack(context);
+    return res;
   }
 
-  @EventPattern(Pattern.PRODUCT_UPDATED)
+  @MessagePattern({ cmd: Pattern.PRODUCT_UPDATED })
   async handleUpdateProduct(
     @GetData() updateProductData: UpdateProductData,
     @Ctx() context: RmqContext,
@@ -67,7 +69,7 @@ export class ProductController {
     this.rmqService.ack(context);
   }
 
-  @EventPattern(Pattern.PRODUCT_DELETED)
+  @MessagePattern({ cmd: Pattern.PRODUCT_DELETED })
   async handleDeleteProduct(
     @GetData() deleteProductData: DeleteProductData,
     @Ctx() context: RmqContext,
@@ -76,12 +78,50 @@ export class ProductController {
     this.rmqService.ack(context);
   }
 
-  @EventPattern(Pattern.PRODUCT_QUANTITY_CHANGED)
+  @MessagePattern({ cmd: Pattern.PRODUCT_QUANTITY_CHANGED })
   async handleUpdateQuantity(
     @GetData() updateQuantityData: UpdateQuantityData,
     @Ctx() context: RmqContext,
   ): Promise<void> {
     await this.productRequestService.updateQuantityProduct(updateQuantityData);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.COMMIT_PRODUCT })
+  async handleCommitUpdateProduct(
+    @GetData() { id }: DeleteProductData,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.productRequestService.commitProduct(id);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.ROLLBACK_DELETE_NEW_PRODUCT })
+  async handleRollbackDeleteNewProduct(
+    @GetData() deleteProductData: DeleteProductData,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.productRequestService.rollbackDeleteNewProduct(
+      deleteProductData,
+    );
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.ROLLBACK_PRODUCT })
+  async handleRollbackUpdateProduct(
+    @GetData() { id }: DeleteProductData,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.productRequestService.rollbackProduct(id);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.ROLLBACK_DELETE_PRODUCT })
+  async handleRollbackDeleteProduct(
+    @GetData() { id }: DeleteProductData,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.productRequestService.rollbackDeleteProduct(id);
     this.rmqService.ack(context);
   }
 }

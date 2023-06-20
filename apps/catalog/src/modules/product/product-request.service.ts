@@ -1,14 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './entities';
 import { Repository } from 'typeorm';
+import { RpcException } from '@nestjs/microservices';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { Product } from './entities';
 import {
   CreateProductData,
   DeleteProductData,
   UpdateProductData,
   UpdateQuantityData,
 } from './types';
-import { RpcException } from '@nestjs/microservices';
 import { ErrorMessages } from './constants';
 
 @Injectable()
@@ -16,12 +18,10 @@ export class ProductRequestService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  async createProduct(product: CreateProductData): Promise<void> {
-
-    // throw new RpcException('');
-
+  async createProduct(product: CreateProductData): Promise<Product> {
     const isExistedProduct = await this.productRepository.findOne({
       where: { name: product.name },
     });
@@ -35,42 +35,74 @@ export class ProductRequestService {
       availableQuantity: product.totalQuantity,
     });
 
-    await this.productRepository.save(newProduct);
+    const savedProduct = await this.productRepository.save(newProduct);
+    return savedProduct;
   }
 
   async updatedProduct({ id, ...rest }: UpdateProductData): Promise<void> {
-    await this.checkProductExistence(id);
-    await this.productRepository.update(id, {
-      ...rest,
-      availableQuantity: rest.totalQuantity,
-    });
+    try {
+      const product = await this.checkProductExistence(id);
+
+      await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
+
+      await this.productRepository.update(id, {
+        ...rest,
+        availableQuantity: rest.totalQuantity,
+      });
+    } catch (err) {
+      return err;
+    }
   }
 
   async deletedProduct({ id }: DeleteProductData): Promise<void> {
-    await this.checkProductExistence(id);
-    await this.productRepository.delete(id);
+    const product = await this.checkProductExistence(id);
+    await this.productRepository.softDelete(id);
   }
 
   async updateQuantityProduct({
     id,
     rightQuantity,
   }: UpdateQuantityData): Promise<void> {
-    await this.checkProductExistence(id);
+    const product = await this.checkProductExistence(id);
 
-    const { availableQuantity } = await this.productRepository.findOne({
-      where: { id },
-    });
+    await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
 
-    if (availableQuantity >= rightQuantity) {
+    if (product.availableQuantity >= rightQuantity) {
       await this.productRepository.update(id, {
-        availableQuantity: availableQuantity - rightQuantity,
+        availableQuantity: product.availableQuantity - rightQuantity,
       });
     } else {
       throw new RpcException(ErrorMessages.BAD_REQUEST);
     }
   }
 
-  private async checkProductExistence(id: number): Promise<void> {
+  async commitProduct(id: number) {
+    try {
+      await this.cacheManager.del(`${id}-product`);
+    } catch (err) {
+      return err;
+    }
+  }
+
+  async rollbackDeleteNewProduct({ id }: DeleteProductData): Promise<void> {
+    await this.checkProductExistence(id);
+    await this.productRepository.delete(id);
+  }
+
+  async rollbackProduct(id: number) {
+    const cachedProduct = await this.cacheManager.get(`${id}-product`);
+    if (typeof cachedProduct === 'string') {
+      const product = JSON.parse(cachedProduct);
+      await this.productRepository.save(product);
+      await this.cacheManager.del(`${id}-product`);
+    }
+  }
+
+  async rollbackDeleteProduct(id: number): Promise<void> {
+    await this.productRepository.restore(id);
+  }
+
+  private async checkProductExistence(id: number): Promise<Product> {
     const isExistedProduct = await this.productRepository.findOne({
       where: { id },
     });
@@ -78,5 +110,7 @@ export class ProductRequestService {
     if (!isExistedProduct) {
       throw new RpcException(ErrorMessages.NOT_FOUND);
     }
+
+    return isExistedProduct;
   }
 }
