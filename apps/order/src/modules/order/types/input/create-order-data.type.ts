@@ -6,7 +6,7 @@ export interface IOrder {
   price: number;
 }
 
-export interface CreateOrder {
+export interface CreateOrderData {
   userId: number;
   products: IOrder[];
   currency: Currency;
