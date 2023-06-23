@@ -22,13 +22,18 @@ export class SendMessageHelper {
     await this.sendMessage(Pattern.PRODUCT_DELETED, data);
   }
 
-  async updateProductQuantity(data: Data) {
-    const res = await this.sendMessage(Pattern.PRODUCT_QUANTITY_CHANGED, data);
+  async updateProductQuantity(data: Data[]) {
+    const res = await this.sendMessage(Pattern.CHECK_PRODUCT_QUANTITY, data);
     return res;
   }
 
   async commitProduct(data: Data) {
     const res = await this.sendMessage(Pattern.COMMIT_PRODUCT, data);
+    return res;
+  }
+
+  async commitUpdatedQuantity(data: Data[]) {
+    const res = await this.sendMessage(Pattern.COMMIT_UPDATED_QUANTITY, data);
     return res;
   }
 
@@ -50,7 +55,15 @@ export class SendMessageHelper {
     return res;
   }
 
-  private async sendMessage(msg: Pattern, data: Data): Promise<Product> {
+  async rollbackUpdatedQuantity(data: Data[]) {
+    const res = await this.sendMessage(Pattern.ROLLBACK_UPDATED_QUANTITY, data);
+    return res;
+  }
+
+  private async sendMessage(
+    msg: Pattern,
+    data: Data | Data[],
+  ): Promise<Product> {
     const pattern = { cmd: msg };
     return await this.catalogClient.send(pattern, { data }).toPromise();
   }

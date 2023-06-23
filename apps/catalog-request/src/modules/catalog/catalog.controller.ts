@@ -53,7 +53,7 @@ export class CatalogController {
     this.rmqService.ack(context);
   }
 
-  @MessagePattern({ cmd: Pattern.PRODUCT_QUANTITY_CHANGED })
+  @MessagePattern({ cmd: Pattern.CHECK_PRODUCT_QUANTITY })
   async handleUpdateQuantity(
     @GetData() updateQuantityData: UpdateQuantityData,
     @Ctx() context: RmqContext,

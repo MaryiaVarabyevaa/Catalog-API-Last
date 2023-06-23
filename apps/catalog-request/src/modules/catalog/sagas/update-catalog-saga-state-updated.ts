@@ -1,6 +1,6 @@
 import { UpdateCatalogState } from './update-catalog.state';
 import { Product } from '../entities';
-import { UpdateProductData } from '../types';
+import { UpdateProductData, UpdateQuantityData } from '../types';
 import { ErrorMessages } from '../constants';
 
 export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
@@ -10,9 +10,9 @@ export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const existingProduct = await queryRunner.manager.findOne(Product, {
+      const existingProduct = (await queryRunner.manager.findOne(Product, {
         where: { id },
-      });
+      })) as Product;
 
       if (!existingProduct) {
         throw new Error(ErrorMessages.NOT_FOUND);

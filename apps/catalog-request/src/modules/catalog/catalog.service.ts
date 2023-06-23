@@ -1,10 +1,15 @@
-import {Injectable} from '@nestjs/common';
-import {DataSource} from 'typeorm';
-import {Product} from './entities';
-import {CreateProductData, DeleteProductData, UpdateProductData, UpdateQuantityData,} from './types';
-import {OperationState} from './constants';
-import {UpdateCatalogSaga} from './sagas';
-import {SendMessageHelper} from './helpers';
+import { Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { Product } from './entities';
+import {
+  CreateProductData,
+  DeleteProductData,
+  UpdateProductData,
+  UpdateQuantityData,
+} from './types';
+import { OperationState } from './constants';
+import { UpdateCatalogSaga } from './sagas';
+import { SendMessageHelper } from './helpers';
 
 @Injectable()
 export class CatalogService {
@@ -48,12 +53,14 @@ export class CatalogService {
     await saga.getState().makeOperation();
   }
 
-  async updateQuantity(updateQuantityData: UpdateQuantityData): Promise<Product> {
+  async updateQuantity(
+    updateQuantityData: UpdateQuantityData,
+  ): Promise<Product> {
     const saga = new UpdateCatalogSaga(
-        OperationState.UPDATED_QUANTITY,
-        updateQuantityData,
-        this.sendMessageHelper,
-        this.dataSource,
-    )
+      OperationState.UPDATED_QUANTITY,
+      updateQuantityData,
+      this.sendMessageHelper,
+      this.dataSource,
+    );
   }
 }

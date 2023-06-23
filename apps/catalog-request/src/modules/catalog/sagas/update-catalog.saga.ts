@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { Data } from '../types';
+import { Data, UpdateQuantityData } from '../types';
 import { OperationState } from '../constants';
 import { UpdateCatalogState } from './update-catalog.state';
 import { UpdateCatalogSagaStateCreated } from './update-catalog-saga-state-created';
