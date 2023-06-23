@@ -3,7 +3,7 @@ import { CatalogService } from './catalog.service';
 import {
   CreateProductInput,
   DeleteProductInput,
-  GetProductArgs,
+  FindProductByIdArgs,
   UpdateProductInput,
 } from './dtos';
 import { ProductEntity } from './entities/product.entity';
@@ -13,8 +13,16 @@ export class CatalogResolver {
   constructor(private readonly catalogService: CatalogService) {}
 
   @Query(() => ProductEntity)
-  async getProductById(@Args() getProductArgs: GetProductArgs) {
-    const res = await this.catalogService.findProductById(getProductArgs);
+  async getProductById(
+    @Args() findProductByIdArgs: FindProductByIdArgs,
+  ): Promise<ProductEntity> {
+    const res = await this.catalogService.findProductById(findProductByIdArgs);
+    return res;
+  }
+
+  @Query(() => [ProductEntity])
+  async findAllProducts(): Promise<ProductEntity[]> {
+    const res = await this.catalogService.findAllProducts();
     return res;
   }
 
@@ -29,7 +37,7 @@ export class CatalogResolver {
   @Mutation(() => ProductEntity)
   async updateProduct(
     @Args('updateProduct') updateProductInput: UpdateProductInput,
-  ) {
+  ): Promise<ProductEntity> {
     const res = await this.catalogService.updateProduct(updateProductInput);
     return res;
   }
@@ -37,8 +45,8 @@ export class CatalogResolver {
   @Mutation(() => Boolean)
   async deleteProduct(
     @Args('deleteProduct') deleteProductInput: DeleteProductInput,
-  ) {
-    const res = await this.catalogService.deleteProduct(deleteProductInput);
-    return res;
+  ): Promise<boolean> {
+    await this.catalogService.deleteProduct(deleteProductInput);
+    return true;
   }
 }
