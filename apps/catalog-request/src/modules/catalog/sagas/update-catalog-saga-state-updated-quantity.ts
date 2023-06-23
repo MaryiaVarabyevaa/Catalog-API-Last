@@ -11,7 +11,7 @@ export class UpdateCatalogSagaStateUpdatedQuantity extends UpdateCatalogState {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      data.map(async ({ id, rightQuantity }) => {
+      for (const { productId: id, rightQuantity } of data) {
         productId = id;
         const existingProduct = await queryRunner.manager.findOne(Product, {
           where: { id },
@@ -21,22 +21,30 @@ export class UpdateCatalogSagaStateUpdatedQuantity extends UpdateCatalogState {
           throw new Error(ErrorMessages.NOT_FOUND);
         }
 
+        await this.saga.cacheManager.set(
+          `${id}-product`,
+          JSON.stringify(existingProduct),
+        );
+
         if (existingProduct.availableQuantity >= rightQuantity) {
-          existingProduct.availableQuantity = rightQuantity;
+          existingProduct.availableQuantity =
+            existingProduct.availableQuantity - rightQuantity;
         } else {
           throw new Error(ErrorMessages.BAD_REQUEST);
         }
 
         await queryRunner.manager.save(existingProduct);
-      });
+      }
 
-      await this.saga.sendMessageHelper.updateProductQuantity(data);
+      const updatedQuantity =
+        await this.saga.sendMessageHelper.updateProductQuantity(data);
 
       await queryRunner.commitTransaction();
-      await this.saga.sendMessageHelper.commitUpdatedQuantity(data);
+      // await this.saga.sendMessageHelper.commitUpdatedQuantity(data);
     } catch (err) {
       await queryRunner.rollbackTransaction();
       await this.saga.sendMessageHelper.rollbackUpdatedQuantity(data);
+      throw err;
     } finally {
       await queryRunner.release();
     }

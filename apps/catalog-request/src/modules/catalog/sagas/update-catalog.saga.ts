@@ -7,15 +7,17 @@ import { UpdateCatalogSagaStateUpdated } from './update-catalog-saga-state-updat
 import { UpdateCatalogSagaStateUpdatedQuantity } from './update-catalog-saga-state-updated-quantity';
 import { UpdateCatalogSagaStateDeleted } from './update-catalog-saga-state-deleted';
 import { SendMessageHelper } from '../helpers';
+import { Cache } from 'cache-manager';
 
 export class UpdateCatalogSaga {
   private state: UpdateCatalogState;
 
   constructor(
     public state: OperationState,
-    public data: Data,
+    public data: Data | Data[],
     public sendMessageHelper: SendMessageHelper,
     public dataSource: DataSource,
+    public cacheManager: Cache,
   ) {
     this.setState(state);
   }

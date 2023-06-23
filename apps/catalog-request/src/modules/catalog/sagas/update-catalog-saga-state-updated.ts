@@ -1,7 +1,7 @@
-import { UpdateCatalogState } from './update-catalog.state';
-import { Product } from '../entities';
-import { UpdateProductData, UpdateQuantityData } from '../types';
-import { ErrorMessages } from '../constants';
+import {UpdateCatalogState} from './update-catalog.state';
+import {Product} from '../entities';
+import {UpdateProductData} from '../types';
+import {ErrorMessages} from '../constants';
 
 export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
   async makeOperation(): Promise<Product> {
@@ -18,27 +18,31 @@ export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
         throw new Error(ErrorMessages.NOT_FOUND);
       }
 
-      existingProduct.name = rest.name;
-      existingProduct.description = rest.description;
-      existingProduct.img_url = rest.img_url;
-      existingProduct.price = rest.price;
-      existingProduct.currency = rest.currency;
-      existingProduct.totalQuantity = rest.totalQuantity;
-      existingProduct.availableQuantity = rest.totalQuantity;
+      this.updateProduct(existingProduct, rest);
 
       const updatedProduct = await queryRunner.manager.save(existingProduct);
 
       await this.saga.sendMessageHelper.updateProduct({ id, ...rest });
 
-      await queryRunner.commitTransaction();
       await this.saga.sendMessageHelper.commitProduct({ id });
+      await queryRunner.commitTransaction();
 
       return updatedProduct;
     } catch (err) {
-      await queryRunner.rollbackTransaction();
       await this.saga.sendMessageHelper.rollbackProduct({ id });
+      await queryRunner.rollbackTransaction();
     } finally {
       await queryRunner.release();
     }
+  }
+  
+  private updateProduct(  product: Product, data: Pick<UpdateProductData,  "name" | "description" | "currency" | "img_url" | "price" | "totalQuantity">) {
+    product.name = data.name;
+    product.description = data.description;
+    product.img_url = data.img_url;
+    product.price = data.price;
+    product.currency = data.currency;
+    product.totalQuantity = data.totalQuantity;
+    product.availableQuantity = data.totalQuantity;
   }
 }

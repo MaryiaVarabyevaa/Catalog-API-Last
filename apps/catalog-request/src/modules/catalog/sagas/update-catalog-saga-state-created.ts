@@ -10,14 +10,7 @@ export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const newProduct = new Product();
-      newProduct.name = productInfo.name;
-      newProduct.description = productInfo.description;
-      newProduct.img_url = productInfo.img_url;
-      newProduct.price = productInfo.price;
-      newProduct.currency = productInfo.currency;
-      newProduct.totalQuantity = productInfo.totalQuantity;
-      newProduct.availableQuantity = productInfo.totalQuantity;
+      const newProduct = this.createProduct(productInfo);
 
       product = await this.saga.sendMessageHelper.createProduct(productInfo);
 
@@ -34,5 +27,18 @@ export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
     } finally {
       await queryRunner.release();
     }
+  }
+
+
+  private createProduct( productInfo: CreateProductData): Product {
+    const newProduct = new Product();
+    newProduct.name = productInfo.name;
+    newProduct.description = productInfo.description;
+    newProduct.img_url = productInfo.img_url;
+    newProduct.price = productInfo.price;
+    newProduct.currency = productInfo.currency;
+    newProduct.totalQuantity = productInfo.totalQuantity;
+    newProduct.availableQuantity = productInfo.totalQuantity;
+    return newProduct;
   }
 }
