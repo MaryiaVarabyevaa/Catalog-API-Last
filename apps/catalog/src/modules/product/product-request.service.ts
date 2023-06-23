@@ -59,21 +59,37 @@ export class ProductRequestService {
     await this.productRepository.softDelete(id);
   }
 
-  async updateQuantityProduct({
-    id,
-    rightQuantity,
-  }: UpdateQuantityData): Promise<void> {
-    const product = await this.checkProductExistence(id);
+  // async updateQuantityProduct({
+  //   id,
+  //   rightQuantity,
+  // }: UpdateQuantityData): Promise<void> {
+  //   const product = await this.checkProductExistence(id);
+  //
+  //   await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
+  //
+  //   if (product.availableQuantity >= rightQuantity) {
+  //     await this.productRepository.update(id, {
+  //       availableQuantity: product.availableQuantity - rightQuantity,
+  //     });
+  //   } else {
+  //     throw new RpcException(ErrorMessages.BAD_REQUEST);
+  //   }
+  // }
 
-    await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
+  async updateQuantityProduct(updateQuantityData: UpdateQuantityData[]): Promise<void> {
+    updateQuantityData.map( async({ id, rightQuantity }) => {
+      const product = await this.checkProductExistence(id);
 
-    if (product.availableQuantity >= rightQuantity) {
-      await this.productRepository.update(id, {
-        availableQuantity: product.availableQuantity - rightQuantity,
-      });
-    } else {
-      throw new RpcException(ErrorMessages.BAD_REQUEST);
-    }
+      await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
+
+      if (product.availableQuantity >= rightQuantity) {
+        await this.productRepository.update(id, {
+          availableQuantity: product.availableQuantity - rightQuantity,
+        });
+      } else {
+        throw new RpcException(ErrorMessages.BAD_REQUEST);
+      }
+    })
   }
 
   async commitProduct(id: number) {
@@ -82,6 +98,12 @@ export class ProductRequestService {
     } catch (err) {
       return err;
     }
+  }
+
+  async commitUpdatedQuantity(data: UpdateQuantityData[]) {
+    data.map(async ({ id }) => {
+      await this.commitProduct(id);
+    });
   }
 
   async rollbackDeleteNewProduct({ id }: DeleteProductData): Promise<void> {
@@ -100,6 +122,12 @@ export class ProductRequestService {
 
   async rollbackDeleteProduct(id: number): Promise<void> {
     await this.productRepository.restore(id);
+  }
+
+  async rollbackUpdatedQuantity(updateQuantityData: UpdateQuantityData[]) {
+    updateQuantityData.map(async ({ id }) => {
+      await this.rollbackProduct(id);
+    });
   }
 
   private async checkProductExistence(id: number): Promise<Product> {

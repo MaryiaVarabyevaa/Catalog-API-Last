@@ -4,12 +4,12 @@ import { Data } from '../types';
 export const GetData = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const message = ctx.switchToRpc().getData<Data>();
-    const user = message.data;
+    const catalog = message.data;
 
-    if ('id' in user) {
-      return { ...user, id: Number(user.id) };
+    if ('id' in catalog) {
+      return { ...catalog, id: Number(catalog.id) };
     }
 
-    return user;
+    return catalog;
   },
 );

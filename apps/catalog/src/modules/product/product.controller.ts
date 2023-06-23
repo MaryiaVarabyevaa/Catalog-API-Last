@@ -78,9 +78,9 @@ export class ProductController {
     this.rmqService.ack(context);
   }
 
-  @MessagePattern({ cmd: Pattern.PRODUCT_QUANTITY_CHANGED })
+  @MessagePattern({ cmd: Pattern.CHECK_PRODUCT_QUANTITY })
   async handleUpdateQuantity(
-    @GetData() updateQuantityData: UpdateQuantityData,
+    @GetData() updateQuantityData: UpdateQuantityData[],
     @Ctx() context: RmqContext,
   ): Promise<void> {
     await this.productRequestService.updateQuantityProduct(updateQuantityData);
@@ -93,6 +93,15 @@ export class ProductController {
     @Ctx() context: RmqContext,
   ): Promise<void> {
     await this.productRequestService.commitProduct(id);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.COMMIT_UPDATED_QUANTITY })
+  async handleCommitUpdatedQuantity(
+    @GetData() updateQuantityData: UpdateQuantityData[],
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.productRequestService.commitUpdatedQuantity(updateQuantityData);
     this.rmqService.ack(context);
   }
 
@@ -122,6 +131,17 @@ export class ProductController {
     @Ctx() context: RmqContext,
   ): Promise<void> {
     await this.productRequestService.rollbackDeleteProduct(id);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.ROLLBACK_UPDATED_QUANTITY })
+  async handleRollbackUpdatedQuantity(
+    @GetData() updateQuantityData: UpdateQuantityData[],
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.productRequestService.rollbackUpdatedQuantity(
+      updateQuantityData,
+    );
     this.rmqService.ack(context);
   }
 }

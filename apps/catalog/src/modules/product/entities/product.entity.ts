@@ -17,7 +17,6 @@ export class Product {
   @Unique(['name'])
   name: string;
 
-  @Index()
   @Column()
   description: string;
 
