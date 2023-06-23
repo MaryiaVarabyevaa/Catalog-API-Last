@@ -1,5 +1,5 @@
-import { CreateOrder } from './create-order-data.type';
+import { CreateOrderData } from './create-order-data.type';
 
-export interface UpdateOrder extends CreateOrder {
+export interface UpdateOrderData extends CreateOrderData {
   id: number;
 }

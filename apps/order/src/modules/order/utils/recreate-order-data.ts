@@ -1,11 +1,11 @@
 import { Order } from '../entities';
-import { CreateOrder } from '../types';
 
 export const recreateOrderData = ({
   user_id,
   currency,
   details,
-}: Order): CreateOrder => {
+}: // }: Order): CreateOrder => {
+Order) => {
   const newOrder = {
     userId: user_id,
     currency,

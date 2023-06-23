@@ -1,9 +1,9 @@
-import {IOrder} from "./create-order.type";
-import {OrderStatus} from "../constants";
+import { IOrder } from './input/create-order-data.type';
+import { OrderStatus } from '../constants';
 
 export interface UserOrderDetails {
-    id: number,
-    status: OrderStatus,
-    currency: string,
-    products: IOrder[],
+  id: number;
+  status: OrderStatus;
+  currency: string;
+  products: IOrder[];
 }

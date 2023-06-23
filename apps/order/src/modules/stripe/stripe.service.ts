@@ -1,20 +1,13 @@
-import { Inject, Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { Order } from '../order/types';
-import { Currency } from '../order/types';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { OrderStatus } from '../order/constants';
+import { Currency, Order } from '../order/types';
 
 @Injectable()
 export class StripeService {
   private stripe;
 
-  constructor(
-    private readonly configService: ConfigService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER)
-    private readonly logger: LoggerService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.stripe = new Stripe(configService.get<string>('STRIPE_SECRET_KEY'), {
       apiVersion: '2022-11-15',
     });
@@ -69,7 +62,6 @@ export class StripeService {
 
       return this.paymentIntentToOrder(paymentIntent);
     } catch (err) {
-      this.logger.error(`Error paying order: ${err.message}`);
       return null;
     }
   }

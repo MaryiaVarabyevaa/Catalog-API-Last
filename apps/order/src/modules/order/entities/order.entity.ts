@@ -1,6 +1,13 @@
-import {Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Details } from './delails.entity';
 import { OrderStatus } from '../constants';
+import { Currency } from '../types';
 
 @Entity()
 export class Order {
