@@ -4,7 +4,7 @@ import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import { Pattern } from './constants';
 import { OrderService } from './order.service';
 import { GetData } from './decorators';
-import { CreateOrderData, UpdateOrderData } from './types';
+import { CreateOrderData } from './types';
 
 @Controller()
 export class OrderController {
@@ -22,15 +22,5 @@ export class OrderController {
     this.rmqService.ack(context);
     // return res;
     return true;
-  }
-
-  @MessagePattern({ cmd: Pattern.UPDATE_ORDER })
-  async handleUpdateOrder(
-    @GetData() updateOrderData: UpdateOrderData,
-    @Ctx() context: RmqContext,
-  ): Promise<any> {
-    const res = await this.orderService.updateOrderInfo(updateOrderData);
-    this.rmqService.ack(context);
-    return res;
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
 import { Currency, Order } from '../order/types';
+import { OrderStatus } from '../order/constants';
 
 @Injectable()
 export class StripeService {
@@ -19,6 +20,8 @@ export class StripeService {
       currency: order.currency,
       description: order.description,
     });
+
+    console.log(paymentIntent);
 
     return this.paymentIntentToOrder(paymentIntent);
   }

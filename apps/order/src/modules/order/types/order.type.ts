@@ -1,4 +1,5 @@
-import { Currency } from './currency.type';
+import {Currency} from "../constants";
+
 
 export interface Order {
   id: string;

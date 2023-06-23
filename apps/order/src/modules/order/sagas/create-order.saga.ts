@@ -7,6 +7,7 @@ import {
 } from '../helpers';
 import { Data } from '../types';
 import { CreateOrderSagaStateCreated } from './create-order-saga-state-created';
+import { StripeService } from '../../stripe/stripe.service';
 
 export class CreateOrderSaga {
   public state: CreateOrderState;
@@ -17,6 +18,7 @@ export class CreateOrderSaga {
     public dataSource: DataSource,
     public sendMessageToCartHelper: SendMessageToCartHelper,
     public sendMessageToCatalogHelper: SendMessageToCatalogHelper,
+    public stripeService: StripeService,
   ) {
     this.setState(state);
   }

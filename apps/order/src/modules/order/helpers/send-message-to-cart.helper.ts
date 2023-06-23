@@ -12,6 +12,16 @@ export class SendMessageToCartHelper {
     return res;
   }
 
+  async commitGetCart(data: Data) {
+    const res = await this.sendMessage(Pattern.COMMIT_GET_CART, data);
+    return res;
+  }
+
+  async rollbackGetCart(data: Data) {
+    const res = await this.sendMessage(Pattern.ROLLBACK_GET_CART, data);
+    return res;
+  }
+
   private async sendMessage(msg: Pattern, data: Data): Promise<any> {
     const pattern = { cmd: msg };
     return await this.cartClient.send(pattern, { data }).toPromise();

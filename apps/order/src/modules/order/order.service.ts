@@ -3,16 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy } from '@nestjs/microservices';
 import { DataSource, In, Repository } from 'typeorm';
 import { Details, Order } from './entities';
-import { CATALOG_REQUEST_SERVICE, OrderDesc, OrderStatus } from './constants';
+import { CATALOG_REQUEST_SERVICE, OrderStatus } from './constants';
 import {
   CreateOrderData,
   GetUserId,
   PayOrderData,
-  UpdateOrderData,
 } from './types';
 import { StripeService } from '../stripe/stripe.service';
-import { getOrdersDetails, makePaymentDesc, recreateOrderData } from './utils';
-import { GetOrderId } from './types/get-order-id.type';
+import { getOrdersDetails, recreateOrderData } from './utils';
+import { OrderId } from './types/input/order-id.type';
 import { SendMessageToCartHelper, SendMessageToCatalogHelper } from './helpers';
 import { CreateOrderSaga } from './sagas';
 
@@ -37,60 +36,14 @@ export class OrderService {
       this.dataSource,
       this.sendMessageToCartHelper,
       this.sendMessageToCatalogHelper,
+      this.stripeService,
     );
 
     const newOrder = await saga.getState().makeOperation();
     return true;
   }
 
-  async updateOrderInfo(order: UpdateOrderData) {
-    // const orderInfo = makePaymentDesc(order, OrderDesc.UPDATE_ORDER);
-    // const { payment_id: paymentId } = await this.orderRepository.findOne({
-    //   where: { id: order.id },
-    // });
-    //
-    // if (!paymentId) {
-    //   return null;
-    // }
-    // await this.stripeService.updateOrder(paymentId, orderInfo);
-    //
-    // const queryRunner = this.dataSource.createQueryRunner();
-    //
-    // await queryRunner.connect();
-    // await queryRunner.startTransaction();
-    //
-    // try {
-    //   const oldOrder = await queryRunner.manager.findOne(Order, {
-    //     where: { id: order.id },
-    //   });
-    //
-    //   oldOrder.currency = order.currency;
-    //
-    //   const updatedOrder = await queryRunner.manager.save(oldOrder);
-    //
-    //   await queryRunner.manager.delete(Details, { order_id: order.id });
-    //
-    //   const details = order.products.map((product) => {
-    //     const orderDetail = new Details();
-    //     orderDetail.order_id = updatedOrder.id;
-    //     orderDetail.product_id = product.productId;
-    //     orderDetail.price = product.price;
-    //     orderDetail.quantity = product.quantity;
-    //     return orderDetail;
-    //   });
-    //
-    //   await queryRunner.manager.save(Details, details);
-    //   await queryRunner.commitTransaction();
-    // } catch (err) {
-    //   await queryRunner.rollbackTransaction();
-    // } finally {
-    //   await queryRunner.release();
-    // }
-
-    return true;
-  }
-
-  async deleteOrder({ id }: GetOrderId) {
+  async deleteOrder({ id }: OrderId) {
     // const { payment_id: paymentId } = await this.orderRepository.findOne({
     //   where: { id },
     // });

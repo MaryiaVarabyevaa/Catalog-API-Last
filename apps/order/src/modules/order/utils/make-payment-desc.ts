@@ -1,15 +1,15 @@
-import { Order } from '../types';
+import { GetProductInfo, Order } from '../types';
 
-export const makePaymentDesc = () =>
-  // { currency, products }: CreateOrder,
-  // description: string,
-  {
-    // let amount = +products
-    //   .reduce((sum, { price, quantity }) => sum + price * quantity, 0)
-    //   .toFixed(2);
-    // return {
-    //   amount,
-    //   currency,
-    //   description,
-    // };
+export const makePaymentDesc = (
+  { currency, details }: GetProductInfo,
+  description: string,
+): Partial<Order> => {
+  let amount = +details
+    .reduce((sum, { price, quantity }) => sum + price * quantity, 0)
+    .toFixed(2);
+  return {
+    amount,
+    currency,
+    description,
   };
+};

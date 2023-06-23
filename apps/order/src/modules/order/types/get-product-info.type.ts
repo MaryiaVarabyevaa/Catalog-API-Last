@@ -1,9 +1,9 @@
-import { ProductInfo } from './product-info.type';
+import {Currency} from "../constants";
 
 export interface GetProductInfo {
   id: number;
   user_id: number;
-  currency: string;
+  currency: Currency;
   details: Product[];
 }
 
