@@ -1,5 +1,4 @@
-import { GetOrderId } from './order-id.type';
-
-export interface PayOrderData extends GetOrderId {
+export interface PayOrderData {
+  id: number;
   paymentMethodId: string;
 }

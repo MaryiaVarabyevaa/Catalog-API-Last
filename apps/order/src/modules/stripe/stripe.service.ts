@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { Currency, Order } from '../order/types';
-import { OrderStatus } from '../order/constants';
+import { Currency, OrderStatus } from '../order/constants';
+import { Order } from '../order/types';
 
 @Injectable()
 export class StripeService {
@@ -21,20 +21,20 @@ export class StripeService {
       description: order.description,
     });
 
-    console.log(paymentIntent);
+    // console.log(paymentIntent);
 
     return this.paymentIntentToOrder(paymentIntent);
   }
 
-  async updateOrder(orderId: string, order: Partial<Order>): Promise<Order> {
-    const paymentIntent = await this.stripe.paymentIntents.update(orderId, {
-      amount: Math.round(order.amount * 100),
-      currency: order.currency,
-      description: order.description,
-    });
-
-    return this.paymentIntentToOrder(paymentIntent);
-  }
+  // async updateOrder(orderId: string, order: Partial<Order>): Promise<Order> {
+  //   const paymentIntent = await this.stripe.paymentIntents.update(orderId, {
+  //     amount: Math.round(order.amount * 100),
+  //     currency: order.currency,
+  //     description: order.description,
+  //   });
+  //
+  //   return this.paymentIntentToOrder(paymentIntent);
+  // }
 
   async deleteOrder(orderId: string): Promise<void> {
     await this.stripe.paymentIntents.cancel(orderId);

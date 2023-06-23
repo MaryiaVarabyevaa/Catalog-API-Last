@@ -6,7 +6,11 @@ import { Details, Order } from './entities';
 import { StripeModule } from '../stripe/stripe.module';
 import { CART_SERVICE, CATALOG_REQUEST_SERVICE } from './constants';
 import { OrderController } from './order.controller';
-import { SendMessageToCartHelper, SendMessageToCatalogHelper } from './helpers';
+import {
+  CreateOrderHelper,
+  SendMessageToCartHelper,
+  SendMessageToCatalogHelper,
+} from './helpers';
 
 @Module({
   imports: [
@@ -23,6 +27,7 @@ import { SendMessageToCartHelper, SendMessageToCatalogHelper } from './helpers';
     OrderService,
     SendMessageToCartHelper,
     SendMessageToCatalogHelper,
+    CreateOrderHelper,
   ],
   controllers: [OrderController],
 })

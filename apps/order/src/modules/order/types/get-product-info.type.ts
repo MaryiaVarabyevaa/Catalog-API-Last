@@ -1,16 +1,16 @@
-import {Currency} from "../constants";
+import { Currency } from '../constants';
 
 export interface GetProductInfo {
-  id: number;
-  user_id: number;
+  id?: number;
+  user_id?: number;
   currency: Currency;
   details: Product[];
 }
 
 export interface Product {
-  id: number;
-  cart_id: number;
-  product_id: number;
+  id?: number;
+  cart_id?: number;
+  product_id?: number;
   quantity: number;
   price: number;
 }

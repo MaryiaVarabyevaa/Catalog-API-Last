@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Details } from './delails.entity';
-import {Currency, OrderStatus} from '../constants';
+import { Currency, OrderStatus } from '../constants';
 
 @Entity()
 export class Order {
@@ -26,7 +26,7 @@ export class Order {
   @Column({
     type: 'enum',
     enum: Currency,
-    default: Currency.BYN
+    default: Currency.BYN,
   })
   currency: Currency;
 

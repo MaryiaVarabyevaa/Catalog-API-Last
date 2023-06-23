@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CATALOG_REQUEST_SERVICE, Pattern } from '../constants';
 import { ClientProxy } from '@nestjs/microservices';
-import { Data, ProductInfo } from '../types';
+import { ProductInfo, UpdateQuantityData } from '../types';
 
 @Injectable()
 export class SendMessageToCatalogHelper {
@@ -9,7 +9,7 @@ export class SendMessageToCatalogHelper {
     @Inject(CATALOG_REQUEST_SERVICE) private catalogClient: ClientProxy,
   ) {}
 
-  async checkProductQuantity(data: ProductInfo[]) {
+  async checkProductQuantity(data: UpdateQuantityData) {
     const res = await this.sendMessage(Pattern.CHECK_PRODUCT_QUANTITY, data);
     return res;
   }
@@ -24,7 +24,10 @@ export class SendMessageToCatalogHelper {
     return res;
   }
 
-  private async sendMessage(msg: Pattern, data: ProductInfo[]): Promise<any> {
+  private async sendMessage(
+    msg: Pattern,
+    data: ProductInfo[] | UpdateQuantityData,
+  ): Promise<any> {
     const pattern = { cmd: msg };
     return await this.catalogClient.send(pattern, { data }).toPromise();
   }

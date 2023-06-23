@@ -1,8 +1,7 @@
 import { CreateOrderState } from './create-order.state';
-import {CreateOrderData, GetProductInfo, Product, ProductInfo} from '../types';
+import { CreateOrderData, GetProductInfo, ProductInfo } from '../types';
 import { getProductInfo, makePaymentDesc } from '../utils';
-import { Details, Order } from '../entities';
-import { OrderDesc, OrderStatus } from '../constants';
+import {Operation, OrderDesc} from '../constants';
 
 export class CreateOrderSagaStateCreated extends CreateOrderState {
   async makeOperation(): Promise<any> {
@@ -19,23 +18,17 @@ export class CreateOrderSagaStateCreated extends CreateOrderState {
 
       productInfo = getProductInfo(cart);
 
-      await this.saga.sendMessageToCatalogHelper.checkProductQuantity(
-        productInfo,
-      );
+      await this.saga.sendMessageToCatalogHelper.checkProductQuantity({
+        operation: Operation.SUB,
+        data: productInfo,
+      });
 
       const orderInfo = makePaymentDesc(cart, OrderDesc.CREATE_ORDER);
 
       const payment = await this.saga.stripeService.createOrder(orderInfo);
       paymentId = payment.id;
 
-      const newOrder = this.createOrder(cart, paymentId);
-      const savedOrder = await queryRunner.manager.save(newOrder);
-
-      const detailsPromises = cart.details.map((productInfo) => {
-        const newDetail = this.createDetails(productInfo, savedOrder.id)
-        return queryRunner.manager.save(newDetail);
-      });
-      await Promise.all(detailsPromises);
+      await this.saga.createOrderHelper.createNewOrder(cart, paymentId);
 
       await this.commit(cartId, productInfo);
       await queryRunner.commitTransaction();
@@ -47,32 +40,10 @@ export class CreateOrderSagaStateCreated extends CreateOrderState {
     }
   }
 
-
-  private createOrder(cart: GetProductInfo, paymentId: string): Order {
-    const newOrder = new Order();
-    newOrder.user_id = cart.user_id;
-    newOrder.currency = cart.currency;
-    newOrder.status = OrderStatus.INCOMPLETE;
-    newOrder.payment_id = paymentId;
-    return newOrder;
-  }
-
-
-  private createDetails(productInfo: Product, orderId: number): Details {
-    const newDetail = new Details();
-    newDetail.product_id = productInfo.product_id;
-    newDetail.quantity = productInfo.quantity;
-    newDetail.price = productInfo.price;
-    newDetail.order_id = orderId;
-    return newDetail;
-  }
-
   private async commit(cartId: CreateOrderData, productInfo: ProductInfo[]) {
     await Promise.all([
       this.saga.sendMessageToCartHelper.commitGetCart(cartId),
-      this.saga.sendMessageToCatalogHelper.commitProductQuantity(
-        productInfo,
-      ),
+      this.saga.sendMessageToCatalogHelper.commitProductQuantity(productInfo),
     ]);
   }
 

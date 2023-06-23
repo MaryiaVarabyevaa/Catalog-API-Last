@@ -1,19 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ClientProxy } from '@nestjs/microservices';
-import { DataSource, In, Repository } from 'typeorm';
-import { Details, Order } from './entities';
-import { CATALOG_REQUEST_SERVICE, OrderStatus } from './constants';
-import {
-  CreateOrderData,
-  GetUserId,
-  PayOrderData,
-} from './types';
-import { StripeService } from '../stripe/stripe.service';
-import { getOrdersDetails, recreateOrderData } from './utils';
-import { OrderId } from './types/input/order-id.type';
-import { SendMessageToCartHelper, SendMessageToCatalogHelper } from './helpers';
-import { CreateOrderSaga } from './sagas';
+import {Inject, Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {ClientProxy} from '@nestjs/microservices';
+import {DataSource, In, Repository} from 'typeorm';
+import {Details, Order} from './entities';
+import {CATALOG_REQUEST_SERVICE, OrderStatus} from './constants';
+import {CreateOrderData, PayOrderData} from './types';
+import {StripeService} from '../stripe/stripe.service';
+import {getOrdersDetails} from './utils';
+import {DeleteOrderData} from './types/input/delete-order-data.type';
+import {CreateOrderHelper, SendMessageToCartHelper, SendMessageToCatalogHelper,} from './helpers';
+import {CreateOrderSaga} from './sagas';
+import {OrderStatusSaga} from "./constants/order-status-saga";
 
 @Injectable()
 export class OrderService {
@@ -27,71 +24,51 @@ export class OrderService {
     private dataSource: DataSource,
     private sendMessageToCartHelper: SendMessageToCartHelper,
     private sendMessageToCatalogHelper: SendMessageToCatalogHelper,
+    private createOrderHelper: CreateOrderHelper,
   ) {}
 
   async createNewOrder(createOrderData: CreateOrderData) {
     const saga = new CreateOrderSaga(
-      OrderStatus.INCOMPLETE,
+      OrderStatusSaga.CREATED,
       createOrderData,
       this.dataSource,
       this.sendMessageToCartHelper,
       this.sendMessageToCatalogHelper,
       this.stripeService,
+      this.createOrderHelper,
     );
 
     const newOrder = await saga.getState().makeOperation();
     return true;
   }
 
-  async deleteOrder({ id }: OrderId) {
-    // const { payment_id: paymentId } = await this.orderRepository.findOne({
-    //   where: { id },
-    // });
-    // if (!paymentId) {
-    //   return null;
-    // }
-    // await this.stripeService.deleteOrder(paymentId);
-    //
-    // const order = await this.orderRepository.update(id, {
-    //   status: OrderStatus.CANCELED,
-    // });
-    //
-    // return true;
+  async deleteOrder(deleteOrderData: DeleteOrderData) {
+    const saga = new CreateOrderSaga(
+      OrderStatusSaga.DELETED,
+      deleteOrderData,
+      this.dataSource,
+      this.sendMessageToCartHelper,
+      this.sendMessageToCatalogHelper,
+      this.stripeService,
+      this.createOrderHelper,
+    );
+
+    const newOrder = await saga.getState().makeOperation();
+    return true;
   }
 
-  async payOrder({ id, paymentMethodId }: PayOrderData) {
-    // try {
-    //   const order = await this.orderRepository.findOne({ where: { id } });
-    //   if (!order) {
-    //     return null;
-    //   }
-    //
-    //   let orderId = id;
-    //   let paymentId = order.payment_id;
-    //   let newStatus: OrderStatus;
-    //
-    //   if (order.status === OrderStatus.CANCELED) {
-    //     const options = await this.recreateOrder(id);
-    //     paymentId = options.paymentId;
-    //     orderId = options.id;
-    //   }
-    //
-    //   const payment = await this.stripeService.payOrder(
-    //     paymentId,
-    //     paymentMethodId,
-    //   );
-    //
-    //   newStatus =
-    //     payment && payment.status === OrderStatus.SUCCEEDED
-    //       ? OrderStatus.SUCCEEDED
-    //       : OrderStatus.CANCELED;
-    //
-    //   await this.orderRepository.update({ id: orderId }, { status: newStatus });
-    //
-    //   return true;
-    // } catch (err) {
-    //   return null;
-    // }
+  async payOrder(payOrderData: PayOrderData) {
+    const saga = new CreateOrderSaga(
+      OrderStatusSaga.PAID,
+      payOrderData,
+      this.dataSource,
+      this.sendMessageToCartHelper,
+      this.sendMessageToCatalogHelper,
+      this.stripeService,
+      this.createOrderHelper,
+    );
+
+    await saga.getState().makeOperation();
   }
 
   async getAllOrdersByUserId({ userId }: GetUserId) {
@@ -127,98 +104,4 @@ export class OrderService {
 
     const orderDetails = getOrdersDetails(latestOrder)[0];
   }
-
-  private async createOrder(order: CreateOrderData) {
-    // const orderInfo = makePaymentDesc(order, OrderDesc.CREATE_ORDER);
-    // const payment = await this.stripeService.createOrder(orderInfo);
-
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const newOrder = new Order();
-      newOrder.user_id = order.userId;
-      newOrder.currency = order.currency;
-      newOrder.payment_id = payment.id;
-
-      const savedOrder = await queryRunner.manager.save(newOrder);
-
-      const details = order.products.map(async (product) => {
-        //
-        // const isEnoughQuantity = await this.checkProductQuantity(product.productId, product.quantity);
-        //
-        // if (!isEnoughQuantity) {
-        //   throw RpcException("")
-        // }
-        //
-        const orderDetail = new Details();
-        orderDetail.order_id = savedOrder.id;
-        orderDetail.product_id = product.productId;
-        orderDetail.price = product.price;
-        orderDetail.quantity = product.quantity;
-        return orderDetail;
-      });
-
-      await queryRunner.manager.save(Details, details);
-
-      await queryRunner.commitTransaction();
-
-      return {
-        id: savedOrder.id,
-        paymentId: payment.id,
-      };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      // order.products.map(async ({ productId, quantity }) => {
-      //   await this.changeProductQuantity(productId, quantity);
-      // });
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  private async recreateOrder(id: number) {
-    const order = await this.orderRepository.findOne({
-      where: {
-        id,
-      },
-      relations: {
-        details: true,
-      },
-    });
-
-    const newOrderInfo = recreateOrderData(order);
-    const orderInfo = await this.createOrder(newOrderInfo);
-    return orderInfo;
-  }
-
-  // private async checkProductQuantity(productId: number, quantity: number) {
-  //   const isEnoughQuantity = await this.sendMessageToAuthClient(
-  //     Pattern.CHECK_PRODUCT_QUANTITY,
-  //     {
-  //       productId,
-  //       quantity,
-  //     },
-  //   );
-  //
-  //   return isEnoughQuantity;
-  // }
-
-  // private async changeProductQuantity(productId: number, quantity: number) {
-  //   const changedProductQuantity = await this.sendMessageToAuthClient(
-  //     Pattern.CHANGE_PRODUCT_QUANTITY,
-  //     {
-  //       productId,
-  //       quantity,
-  //     },
-  //   );
-  //
-  //   return changedProductQuantity;
-  // }
-  //
-  // private async sendMessageToAuthClient(msg: string, data: any) {
-  //   const pattern = { cmd: msg };
-  //   return await this.catalogClient.send(pattern, { data }).toPromise();
-  // }
 }
