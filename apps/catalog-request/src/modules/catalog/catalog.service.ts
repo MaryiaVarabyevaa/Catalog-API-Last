@@ -27,11 +27,11 @@ export class CatalogService {
 
   async createProduct(createProductData: CreateProductData): Promise<Product> {
     const saga = new UpdateCatalogSaga(
-      OperationState.CREATED,
-      createProductData,
-      this.sendMessageHelper,
-      this.dataSource,
-      this.cacheManager,
+        OperationState.CREATED,
+        createProductData,
+        this.sendMessageHelper,
+        this.dataSource,
+        this.cacheManager,
     );
 
     const newProduct = await saga.getState().makeOperation();

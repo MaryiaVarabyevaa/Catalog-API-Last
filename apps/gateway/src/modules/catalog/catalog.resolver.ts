@@ -1,4 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 import {
   CreateProductInput,
@@ -7,12 +8,18 @@ import {
   UpdateProductInput,
 } from './dtos';
 import { ProductEntity } from './entities/product.entity';
+import { Roles } from '../../common/decorators';
+import { RolesGuard } from '../../common/guargs';
+import { AtGuard } from '../auth/guards';
+import { UserRoles } from '../../common/constants';
 
 @Resolver('Catalog')
+@UseGuards(AtGuard, RolesGuard)
 export class CatalogResolver {
   constructor(private readonly catalogService: CatalogService) {}
 
   @Query(() => ProductEntity)
+  @Roles(UserRoles.USER, UserRoles.ADMIN)
   async getProductById(
     @Args() findProductByIdArgs: FindProductByIdArgs,
   ): Promise<ProductEntity> {
@@ -21,12 +28,14 @@ export class CatalogResolver {
   }
 
   @Query(() => [ProductEntity])
+  @Roles(UserRoles.USER, UserRoles.ADMIN)
   async findAllProducts(): Promise<ProductEntity[]> {
     const res = await this.catalogService.findAllProducts();
     return res;
   }
 
   @Mutation(() => ProductEntity)
+  @Roles(UserRoles.ADMIN)
   async createProduct(
     @Args('createProduct') createProductInput: CreateProductInput,
   ): Promise<ProductEntity> {
@@ -35,6 +44,7 @@ export class CatalogResolver {
   }
 
   @Mutation(() => ProductEntity)
+  @Roles(UserRoles.ADMIN)
   async updateProduct(
     @Args('updateProduct') updateProductInput: UpdateProductInput,
   ): Promise<ProductEntity> {
@@ -43,6 +53,7 @@ export class CatalogResolver {
   }
 
   @Mutation(() => Boolean)
+  @Roles(UserRoles.ADMIN)
   async deleteProduct(
     @Args('deleteProduct') deleteProductInput: DeleteProductInput,
   ): Promise<boolean> {

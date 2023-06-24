@@ -4,7 +4,7 @@ import { RmqService } from '@app/common';
 import { Pattern } from './constants';
 import {
   CreateProductData,
-  DeleteProductData,
+  DeleteProductData, FindProductByIdData,
   QuantityData,
   UpdateProductData,
   UpdateQuantityData,
@@ -24,19 +24,17 @@ export class ProductController {
     private readonly productRequestService: ProductRequestService,
   ) {}
 
-  // @MessagePattern({ cmd: Pattern.FIND_PRODUCT_BY_ID })
-  // // @CacheKey('')
-  // // @CacheTTL()
-  // async handleFindProductById(
-  //   @GetData() findProductByIdData: FindProductByIdData,
-  //   @Ctx() context: RmqContext,
-  // ): Promise<Product> {
-  //   const res = await this.productQueryService.findProductById(
-  //     findProductByIdData,
-  //   );
-  //   this.rmqService.ack(context);
-  //   return res;
-  // }
+  @MessagePattern({ cmd: Pattern.FIND_PRODUCT_BY_ID })
+  async handleFindProductById(
+    @GetData() findProductByIdData: FindProductByIdData,
+    @Ctx() context: RmqContext,
+  ): Promise<Product> {
+    const res = await this.productQueryService.findProductById(
+      findProductByIdData,
+    );
+    this.rmqService.ack(context);
+    return res;
+  }
 
   @MessagePattern({ cmd: Pattern.FIND_ALL_PRODUCTS })
   async handleFindAllProducts(@Ctx() context: RmqContext): Promise<Product[]> {
@@ -50,19 +48,19 @@ export class ProductController {
     @GetData() createProductData: CreateProductData,
     @Ctx() context: RmqContext,
   ): Promise<Product> {
-    await this.productRequestService.createProduct(
-      createProductData,
-    );
+    const res = await this.productRequestService.createProduct(createProductData);
     this.rmqService.ack(context);
+    return res;
   }
 
   @MessagePattern({ cmd: Pattern.PRODUCT_UPDATED })
   async handleUpdateProduct(
     @GetData() updateProductData: UpdateProductData,
     @Ctx() context: RmqContext,
-  ): Promise<void> {
-    await this.productRequestService.updatedProduct(updateProductData);
+  ): Promise<Product> {
+    const res = await this.productRequestService.updatedProduct(updateProductData);
     this.rmqService.ack(context);
+    return res;
   }
 
   @MessagePattern({ cmd: Pattern.PRODUCT_DELETED })
@@ -79,9 +77,7 @@ export class ProductController {
     @GetData() updateQuantityData: UpdateQuantityData,
     @Ctx() context: RmqContext,
   ): Promise<void> {
-    await this.productRequestService.updateQuantityProduct(
-      updateQuantityData,
-    );
+    await this.productRequestService.updateQuantityProduct(updateQuantityData);
     this.rmqService.ack(context);
   }
 
@@ -99,9 +95,7 @@ export class ProductController {
     @GetData() quantityData: QuantityData[],
     @Ctx() context: RmqContext,
   ): Promise<void> {
-    await this.productRequestService.commitUpdatedQuantity(
-      quantityData,
-    );
+    await this.productRequestService.commitUpdatedQuantity(quantityData);
     this.rmqService.ack(context);
   }
 

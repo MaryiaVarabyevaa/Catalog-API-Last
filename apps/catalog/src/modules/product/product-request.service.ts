@@ -22,7 +22,7 @@ export class ProductRequestService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  async createProduct(product: CreateProductData): Promise<void> {
+  async createProduct(product: CreateProductData): Promise<Product> {
     const isExistedProduct = await this.productRepository.findOne({
       where: { name: product.name },
     });
@@ -36,22 +36,22 @@ export class ProductRequestService {
       availableQuantity: product.totalQuantity,
     });
 
-    await this.productRepository.save(newProduct);
+    const res = await this.productRepository.save(newProduct);
+    return res;
   }
 
-  async updatedProduct({ id, ...rest }: UpdateProductData): Promise<void> {
-    try {
-      const product = await this.checkProductExistence(id);
+  async updatedProduct({ id, ...rest }: UpdateProductData): Promise<Product> {
+    const product = await this.checkProductExistence(id);
 
-      await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
+    await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
 
-      await this.productRepository.update(id, {
-        ...rest,
-        availableQuantity: rest.totalQuantity,
-      });
-    } catch (err) {
-      return err;
-    }
+    await this.productRepository.update(id, {
+      ...rest,
+      availableQuantity: rest.totalQuantity,
+    });
+
+    const updatedProduct = await this.productRepository.findOne({ where: { id } });
+    return updatedProduct;
   }
 
   async deletedProduct({ id }: DeleteProductData): Promise<void> {

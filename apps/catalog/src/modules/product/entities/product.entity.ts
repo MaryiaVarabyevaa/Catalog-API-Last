@@ -5,8 +5,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import {Currency} from "../constants";
-
+import { Currency } from '../constants';
 
 @Entity()
 export class Product {
