@@ -5,6 +5,8 @@ import { UserService } from './user.service';
 import { GetData, GetId } from '../../common/decorators';
 import { ValidateUserData } from './types';
 import { Pattern } from './constants';
+import { TokenPair } from '../token/types';
+import { User } from './entities';
 
 @Controller()
 export class UserController {
@@ -17,14 +19,17 @@ export class UserController {
   async handleValidateUser(
     @GetData() validateUserData: ValidateUserData,
     @Ctx() context: RmqContext,
-  ) {
+  ): Promise<User> {
     const res = await this.userService.validateUser(validateUserData);
     this.rmqService.ack(context);
     return res;
   }
 
   @MessagePattern({ cmd: Pattern.CHANGE_USER_ROLE })
-  async handleChangeUserRole(@GetId() id: number, @Ctx() context: RmqContext) {
+  async handleChangeUserRole(
+    @GetId() id: number,
+    @Ctx() context: RmqContext,
+  ): Promise<TokenPair> {
     const res = await this.userService.changeUserRole(id);
     this.rmqService.ack(context);
     return res;
