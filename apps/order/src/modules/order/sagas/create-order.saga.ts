@@ -1,12 +1,16 @@
-import {DataSource} from 'typeorm';
-import {CreateOrderState} from './create-order.state';
-import {CreateOrderHelper, SendMessageToCartHelper, SendMessageToCatalogHelper,} from '../helpers';
-import {Data} from '../types';
-import {CreateOrderSagaStateCreated} from './create-order-saga-state-created';
-import {StripeService} from '../../stripe/stripe.service';
-import {CreateOrderSagaPaid} from './create-order-saga-paid';
-import {CreateOrderSagaDeleted} from './create-order-saga-deleted';
-import {OrderStatusSaga} from "../constants/order-status-saga";
+import { DataSource } from 'typeorm';
+import { CreateOrderState } from './create-order.state';
+import {
+  CreateOrderHelper,
+  SendMessageToCartHelper,
+  SendMessageToCatalogHelper,
+} from '../helpers';
+import { Data } from '../types';
+import { CreateOrderSagaStateCreated } from './create-order-saga-state-created';
+import { StripeService } from '../../stripe/stripe.service';
+import { CreateOrderSagaPaid } from './create-order-saga-paid';
+import { CreateOrderSagaDeleted } from './create-order-saga-deleted';
+import { OrderStatusSaga } from '../constants/order-status-saga';
 
 export class CreateOrderSaga {
   public state: CreateOrderState;

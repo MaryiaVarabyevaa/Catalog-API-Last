@@ -1,7 +1,7 @@
-import {Inject, Injectable} from '@nestjs/common';
-import {ClientProxy} from '@nestjs/microservices';
-import {CART_SERVICE, Pattern} from '../constants';
-import {ClearCart, Data} from '../types';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { CART_SERVICE, Pattern } from '../constants';
+import { ClearCart, Data } from '../types';
 
 @Injectable()
 export class SendMessageToCartHelper {
@@ -23,7 +23,7 @@ export class SendMessageToCartHelper {
   }
 
   async clearCart(data: Data) {
-    const res = await this.sendMessage(Pattern.CLEAR_CART, data)
+    const res = await this.sendMessage(Pattern.CLEAR_CART, data);
   }
 
   private async sendMessage(msg: Pattern, data: Data): Promise<any> {

@@ -1,7 +1,7 @@
 import { CreateOrderState } from './create-order.state';
 import { CreateOrderData, GetProductInfo, ProductInfo } from '../types';
 import { getProductInfo, makePaymentDesc } from '../utils';
-import {Operation, OrderDesc} from '../constants';
+import { Operation, OrderDesc } from '../constants';
 
 export class CreateOrderSagaStateCreated extends CreateOrderState {
   async makeOperation(): Promise<any> {

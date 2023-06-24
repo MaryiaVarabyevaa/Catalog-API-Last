@@ -1,4 +1,4 @@
 export enum Operation {
-    ADD = 'addition',
-    SUB = 'subtraction'
+  ADD = 'addition',
+  SUB = 'subtraction',
 }

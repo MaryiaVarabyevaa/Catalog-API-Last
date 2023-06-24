@@ -1,16 +1,18 @@
-import {Inject, Injectable} from '@nestjs/common';
-import {InjectRepository} from '@nestjs/typeorm';
-import {ClientProxy} from '@nestjs/microservices';
-import {DataSource, In, Repository} from 'typeorm';
-import {Details, Order} from './entities';
-import {CATALOG_REQUEST_SERVICE, OrderStatus} from './constants';
-import {CreateOrderData, PayOrderData} from './types';
-import {StripeService} from '../stripe/stripe.service';
-import {getOrdersDetails} from './utils';
-import {DeleteOrderData} from './types/input/delete-order-data.type';
-import {CreateOrderHelper, SendMessageToCartHelper, SendMessageToCatalogHelper,} from './helpers';
-import {CreateOrderSaga} from './sagas';
-import {OrderStatusSaga} from "./constants/order-status-saga";
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ClientProxy } from '@nestjs/microservices';
+import { DataSource, In, Repository } from 'typeorm';
+import { Details, Order } from './entities';
+import {CATALOG_REQUEST_SERVICE, OrderStatus, OrderStatusSaga} from './constants';
+import { CreateOrderData, PayOrderData, DeleteOrderData } from './types';
+import { StripeService } from '../stripe/stripe.service';
+import { getOrdersDetails } from './utils';
+import {
+  CreateOrderHelper,
+  SendMessageToCartHelper,
+  SendMessageToCatalogHelper,
+} from './helpers';
+import { CreateOrderSaga } from './sagas';
 
 @Injectable()
 export class OrderService {
@@ -27,7 +29,7 @@ export class OrderService {
     private createOrderHelper: CreateOrderHelper,
   ) {}
 
-  async createNewOrder(createOrderData: CreateOrderData) {
+  async createNewOrder(createOrderData: CreateOrderData): Promise<Order> {
     const saga = new CreateOrderSaga(
       OrderStatusSaga.CREATED,
       createOrderData,
@@ -39,10 +41,10 @@ export class OrderService {
     );
 
     const newOrder = await saga.getState().makeOperation();
-    return true;
+    return newOrder;
   }
 
-  async deleteOrder(deleteOrderData: DeleteOrderData) {
+  async deleteOrder(deleteOrderData: DeleteOrderData): Promise<void> {
     const saga = new CreateOrderSaga(
       OrderStatusSaga.DELETED,
       deleteOrderData,
@@ -53,11 +55,11 @@ export class OrderService {
       this.createOrderHelper,
     );
 
-    const newOrder = await saga.getState().makeOperation();
+    await saga.getState().makeOperation();
     return true;
   }
 
-  async payOrder(payOrderData: PayOrderData) {
+  async payOrder(payOrderData: PayOrderData): Promise<Order> {
     const saga = new CreateOrderSaga(
       OrderStatusSaga.PAID,
       payOrderData,
@@ -68,40 +70,41 @@ export class OrderService {
       this.createOrderHelper,
     );
 
-    await saga.getState().makeOperation();
+    const order = await saga.getState().makeOperation();
+    return order;
   }
 
-  async getAllOrdersByUserId({ userId }: GetUserId) {
-    // const orders = await this.orderRepository.find({
-    //   where: {
-    //     user_id: userId,
-    //     status: OrderStatus.SUCCEEDED,
-    //   },
-    //   relations: {
-    //     details: true,
-    //   },
-    // });
-    //
-    // const orderDetails = getOrdersDetails(orders);
-    //
-    // return true;
-  }
+  // async getAllOrdersByUserId({ userId }: GetUserId) {
+  //   // const orders = await this.orderRepository.find({
+  //   //   where: {
+  //   //     user_id: userId,
+  //   //     status: OrderStatus.SUCCEEDED,
+  //   //   },
+  //   //   relations: {
+  //   //     details: true,
+  //   //   },
+  //   // });
+  //   //
+  //   // const orderDetails = getOrdersDetails(orders);
+  //   //
+  //   // return true;
+  // }
 
-  async getLatestUserOrder({ userId }: GetUserId) {
-    const latestOrder = await this.orderRepository.find({
-      where: {
-        user_id: userId,
-        status: In([OrderStatus.SUCCEEDED, OrderStatus.INCOMPLETE]),
-      },
-      order: {
-        created_at: 'DESC',
-      },
-      relations: {
-        details: true,
-      },
-      take: 1,
-    });
-
-    const orderDetails = getOrdersDetails(latestOrder)[0];
-  }
+  // async getLatestUserOrder({ userId }: GetUserId) {
+  //   const latestOrder = await this.orderRepository.find({
+  //     where: {
+  //       user_id: userId,
+  //       status: In([OrderStatus.SUCCEEDED, OrderStatus.INCOMPLETE]),
+  //     },
+  //     order: {
+  //       created_at: 'DESC',
+  //     },
+  //     relations: {
+  //       details: true,
+  //     },
+  //     take: 1,
+  //   });
+  //
+  //   const orderDetails = getOrdersDetails(latestOrder)[0];
+  // }
 }

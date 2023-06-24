@@ -5,3 +5,4 @@ export * from './service';
 export * from './pattern';
 export * from './currency';
 export * from './operation';
+export * from './order-status-saga';

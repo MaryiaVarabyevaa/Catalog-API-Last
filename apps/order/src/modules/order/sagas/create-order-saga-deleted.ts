@@ -1,8 +1,8 @@
-import {CreateOrderState} from './create-order.state';
-import {Order} from '../entities';
-import {getProductInfo} from '../utils';
-import {Operation, OrderStatus} from "../constants";
-import {DeleteOrderData, ProductInfo} from "../types";
+import { CreateOrderState } from './create-order.state';
+import { Order } from '../entities';
+import { getProductInfo } from '../utils';
+import { Operation, OrderStatus } from '../constants';
+import { DeleteOrderData, ProductInfo } from '../types';
 
 export class CreateOrderSagaDeleted extends CreateOrderState {
   async makeOperation(): Promise<any> {
@@ -22,13 +22,15 @@ export class CreateOrderSagaDeleted extends CreateOrderState {
       await this.saga.sendMessageToCartHelper.rollbackGetCart({ cartId });
       await this.saga.sendMessageToCatalogHelper.checkProductQuantity({
         operation: Operation.ADD,
-        data: productInfo
+        data: productInfo,
       });
 
       order.status = OrderStatus.CANCELED;
       await queryRunner.manager.save(order);
 
-      await this.saga.sendMessageToCatalogHelper.commitProductQuantity(productInfo);
+      await this.saga.sendMessageToCatalogHelper.commitProductQuantity(
+        productInfo,
+      );
       await queryRunner.commitTransaction();
     } catch (err) {
       await this.rollback(cartId, productInfo);
@@ -38,11 +40,10 @@ export class CreateOrderSagaDeleted extends CreateOrderState {
     }
   }
 
-
   private async rollback(cartId: number, productInfo: ProductInfo[]) {
     await Promise.all([
       this.saga.sendMessageToCartHelper.clearCart({ cartId }),
       this.saga.sendMessageToCatalogHelper.rollbackProductQuantity(productInfo),
-    ])
+    ]);
   }
 }
