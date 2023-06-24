@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Details } from './details.entity';
-import {Currency} from "../constants";
+import { Currency } from '../constants';
 
 @Entity()
 export class Cart {

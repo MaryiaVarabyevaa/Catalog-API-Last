@@ -1,3 +1,3 @@
 export interface GetCurrentCartData {
-    userId: number
+  userId: number;
 }

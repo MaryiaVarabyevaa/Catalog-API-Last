@@ -1,4 +1,4 @@
-import {Currency} from "../../constants";
+import { Currency } from '../../constants';
 
 export interface CreateProductData {
   userId: number;
@@ -7,5 +7,4 @@ export interface CreateProductData {
   quantity: number;
   price: number;
   newCart?: boolean;
-  id?: number;
 }

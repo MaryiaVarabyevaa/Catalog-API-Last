@@ -1,15 +1,24 @@
 import { Field, Float, InputType, Int } from '@nestjs/graphql';
-import { IsBoolean, IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
+import {IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsPositive} from 'class-validator';
+import {Currency} from "../../../order/constants";
 
 @InputType()
 export class AddProductInput {
   @Field(() => Int)
+  @IsNotEmpty()
+  @IsNumber()
+  @IsPositive()
   productId: number;
 
-  @Field(() => String)
-  currency: string;
+  @Field(() => Currency)
+  @IsNotEmpty()
+  @IsEnum(Currency)
+  currency: Currency;
 
   @Field(() => Int)
+  @IsNotEmpty()
+  @IsNumber()
+  @IsPositive()
   quantity: number;
 
   @Field(() => Float)
@@ -22,7 +31,4 @@ export class AddProductInput {
   @IsBoolean()
   newCart?: boolean;
 
-  @Field(() => Int, { nullable: true })
-  @IsNumber()
-  id?: number;
 }

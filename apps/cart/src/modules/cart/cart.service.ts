@@ -25,8 +25,8 @@ export class CartService {
   ) {}
 
   async addProductToCart(product: CreateProductData): Promise<Cart> {
-    const { userId, newCart, id, ...rest } = product;
-    let cartId = id;
+    const { userId, newCart, ...rest } = product;
+    let cartId: number;
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -37,6 +37,9 @@ export class CartService {
         newProduct.currency = rest.currency;
         const savedProduct = await queryRunner.manager.save(newProduct);
         cartId = savedProduct.id;
+      } else {
+        const cart = await queryRunner.manager.findOne(Cart, { where: { user_id: userId } });
+        cartId = cart.id;
       }
 
       const details = new Details();

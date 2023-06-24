@@ -17,10 +17,13 @@ export class CartService {
     addProductInput: AddProductInput,
     userId: number,
   ): Promise<CartEntity> {
-    const res = await this.sendMessage<CartEntity>(Pattern.ADD_PRODUCT_TO_CART, {
-      ...addProductInput,
-      userId,
-    });
+    const res = await this.sendMessage<CartEntity>(
+      Pattern.ADD_PRODUCT_TO_CART,
+      {
+        ...addProductInput,
+        userId,
+      },
+    );
     return res;
   }
 
@@ -36,12 +39,17 @@ export class CartService {
   }
 
   async clearCart(clearCartInput: ClearCartInput): Promise<boolean> {
-    const res = await this.sendMessage<boolean>(Pattern.CLEAR_CART, clearCartInput);
+    const res = await this.sendMessage<boolean>(
+      Pattern.CLEAR_CART,
+      clearCartInput,
+    );
     return res;
   }
 
   async getCurrentCart(userId: number): Promise<CartEntity> {
-    const res = await this.sendMessage<CartEntity>(Pattern.GET_CURRENT_CART, { userId });
+    const res = await this.sendMessage<CartEntity>(Pattern.GET_CURRENT_CART, {
+      userId,
+    });
     return res;
   }
 

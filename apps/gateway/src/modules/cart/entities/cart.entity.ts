@@ -1,12 +1,13 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
+import {Currency} from "../../order/constants";
 
 @ObjectType()
 export class CartEntity {
   @Field(() => ID)
   id: number;
 
-  @Field()
-  currency: string;
+  @Field(() => Currency)
+  currency: Currency;
 
   @Field(() => [Product])
   details: Product[];
@@ -18,7 +19,7 @@ export class Product {
   id: number;
 
   @Field()
-  name: string;
+  product_id: number;
 
   @Field(() => Int)
   quantity: number;
