@@ -8,9 +8,7 @@ import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: false,
-  });
+  const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
 
@@ -28,7 +26,6 @@ async function bootstrap() {
   );
   app.use(passport.initialize());
   app.use(passport.session());
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);

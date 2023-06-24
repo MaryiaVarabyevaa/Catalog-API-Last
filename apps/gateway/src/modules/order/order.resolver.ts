@@ -3,13 +3,13 @@ import { OrderService } from './order.service';
 import { Order } from './entities';
 import {
   CreateOrderInput,
-  GetOrderIdInput,
+  DeleteOrderInput,
   PayOrderInput,
   UpdateOrderInput,
 } from './dtos';
 import { UseGuards } from '@nestjs/common';
 import { AtGuard } from '../auth/guards';
-import { GetCurrentUserId } from '../auth/decorators';
+import { GetCurrentUserId } from '../../common/decorators';
 
 @Resolver('Order')
 export class OrderResolver {
@@ -42,20 +42,9 @@ export class OrderResolver {
     return true;
   }
 
-  // @Mutation(() => Order)
   @Mutation(() => Boolean)
-  @UseGuards(AtGuard)
-  async updateOrder(
-    @Args('updateOrder') updateOrderInput: UpdateOrderInput,
-    @GetCurrentUserId() userId: number,
-  ) {
-    const res = await this.orderService.updateOrder(updateOrderInput, userId);
-    return true;
-  }
-
-  @Mutation(() => Boolean)
-  async deleteOrder(@Args('getOrderId') getOrderIdInput: GetOrderIdInput) {
-    const res = await this.orderService.deleteOrder(getOrderIdInput);
+  async deleteOrder(@Args('deleteOrder') deleteOrderInput: DeleteOrderInput) {
+    const res = await this.orderService.deleteOrder(deleteOrderInput);
     return true;
   }
 

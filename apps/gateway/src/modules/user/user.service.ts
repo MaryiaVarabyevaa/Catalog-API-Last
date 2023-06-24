@@ -7,8 +7,8 @@ import { Data, IUser } from './types';
 export class UserService {
   constructor(@Inject(AUTH_SERVICE) private authClient: ClientProxy) {}
 
-  async validateUser(email: string, password: string): Promise<IUser | null> {
-    const res = await this.sendMessageToAuthClient(Pattern.VALIDATE_USER, {
+  async validateUser(email: string, password: string): Promise<any> {
+    const res = await this.sendMessage(Pattern.VALIDATE_USER, {
       email,
       password,
     });
@@ -18,11 +18,15 @@ export class UserService {
     return res;
   }
 
-  private async sendMessageToAuthClient(
-    msg: Pattern,
-    data: Data,
-  ): Promise<IUser | null> {
-    const pattern = { cmd: msg };
-    return await this.authClient.send(pattern, { data }).toPromise();
+  async changeUserRole(userId: number) {
+    const res = await this.sendMessage(Pattern.CHANGE_USER_ROLE, {
+      id: userId,
+    });
+    return res;
+  }
+
+  private async sendMessage(msg: Pattern, data: Data): Promise<any> {
+    // const pattern = { cmd: msg };
+    // return await this.authClient.send(pattern, { data }).toPromise();
   }
 }

@@ -3,7 +3,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { ORDER_SERVICE, Pattern } from './constants';
 import {
   CreateOrderInput,
-  GetOrderIdInput,
+  DeleteOrderInput,
   PayOrderInput,
   UpdateOrderInput,
 } from './dtos';
@@ -11,7 +11,7 @@ import { Data } from './types';
 
 @Injectable()
 export class OrderService {
-  constructor(@Inject(ORDER_SERVICE) private authClient: ClientProxy) {}
+  constructor(@Inject(ORDER_SERVICE) private orderClient: ClientProxy) {}
 
   async createOrder(createOrderInput: CreateOrderInput, userId: number) {
     const res = await this.sendMessage(Pattern.CREATE_ORDER, {
@@ -21,16 +21,8 @@ export class OrderService {
     return res;
   }
 
-  async updateOrder(updateOrderInput: UpdateOrderInput, userId: number) {
-    const res = await this.sendMessage(Pattern.UPDATE_ORDER, {
-      ...updateOrderInput,
-      userId,
-    });
-    return res;
-  }
-
-  async deleteOrder(getOrderIdInput: GetOrderIdInput) {
-    const res = await this.sendMessage(Pattern.DELETE_ORDER, getOrderIdInput);
+  async deleteOrder(deleteOrderInput: DeleteOrderInput) {
+    const res = await this.sendMessage(Pattern.DELETE_ORDER, deleteOrderInput);
     return res;
   }
 
@@ -53,6 +45,6 @@ export class OrderService {
 
   private async sendMessage(msg: Pattern, data: Data) {
     const pattern = { cmd: msg };
-    return await this.authClient.send(pattern, { data }).toPromise();
+    return await this.orderClient.send(pattern, { data }).toPromise();
   }
 }

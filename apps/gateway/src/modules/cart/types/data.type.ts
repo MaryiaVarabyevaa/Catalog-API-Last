@@ -1,8 +1,12 @@
-import { AddProductInput } from '../dtos';
-import { UpdateProductInput } from '../../catalog/dtos';
-import { GetOrderIdInput } from '../../order/dtos';
+import {
+  AddProductInput,
+  ClearCartInput,
+  UpdateProductInCartInput,
+} from '../dtos';
+import { DeleteOrderInput } from '../../order/dtos';
 import { UserId } from './user-id.type';
 
 export type Data =
-  | ((AddProductInput | UpdateProductInput | GetOrderIdInput) & UserId)
-  | UserId;
+  | ((AddProductInput | UpdateProductInCartInput | DeleteOrderInput) & UserId)
+  | UserId
+  | ClearCartInput;

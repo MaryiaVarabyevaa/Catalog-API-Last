@@ -9,7 +9,7 @@ export class CartEntity {
   currency: string;
 
   @Field(() => [Product])
-  products: Product[];
+  details: Product[];
 }
 
 @ObjectType()

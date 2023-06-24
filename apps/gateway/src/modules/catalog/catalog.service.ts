@@ -27,7 +27,9 @@ export class CatalogService {
     return res;
   }
 
-  async updateProduct(updateProductInput: UpdateProductInput): Promise<ProductEntity>{
+  async updateProduct(
+    updateProductInput: UpdateProductInput,
+  ): Promise<ProductEntity> {
     const updatedProduct = await this.sendMessageToCatalogRequest(
       Pattern.UPDATE_PRODUCT,
       updateProductInput,
@@ -43,7 +45,7 @@ export class CatalogService {
   }
 
   async findProductById(
-      findProductByIdArgs: FindProductByIdArgs,
+    findProductByIdArgs: FindProductByIdArgs,
   ): Promise<ProductEntity> {
     const product = await this.sendMessageToCatalog<ProductEntity>(
       Pattern.FIND_PRODUCT_BY_ID,

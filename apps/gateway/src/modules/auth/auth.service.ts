@@ -2,28 +2,19 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { ClientProxy } from '@nestjs/microservices';
 import { AUTH_SERVICE, ErrorMessage, Pattern } from './constants';
 import { CreateUserInput, LoginUserInput } from './dtos';
 import { DataType, TokenPair } from './types';
-import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER)
-    private readonly logger: LoggerService,
-    @Inject(AUTH_SERVICE) private authClient: ClientProxy,
-  ) {}
+  constructor(@Inject(AUTH_SERVICE) private authClient: ClientProxy) {}
 
   async register(createUserInput: CreateUserInput): Promise<TokenPair> {
-    const res = await this.sendMessageToAuthClient(
-      Pattern.REGISTER,
-      createUserInput,
-    );
+    const res = await this.sendMessage(Pattern.REGISTER, createUserInput);
 
     if (!res) {
       throw new ConflictException(ErrorMessage.CONFLICT);
@@ -32,26 +23,23 @@ export class AuthService {
   }
 
   async login(loginUserInput: LoginUserInput): Promise<TokenPair> {
-    const res = await this.sendMessageToAuthClient(
-      Pattern.LOGIN,
-      loginUserInput,
-    );
+    const res = await this.sendMessage(Pattern.LOGIN, loginUserInput);
     return res;
   }
 
   async logout(id: number): Promise<void> {
-    await this.sendMessageToAuthClient(Pattern.LOGOUT, { id });
+    await this.sendMessage(Pattern.LOGOUT, { id });
   }
 
   async refreshTokens(id: number, rt: string): Promise<TokenPair> {
-    const res = await this.sendMessageToAuthClient(Pattern.REFRESH, { id, rt });
+    const res = await this.sendMessage(Pattern.REFRESH, { id, rt });
     if (!res) {
       throw new NotFoundException(ErrorMessage.NOT_FOUND);
     }
     return res;
   }
 
-  private async sendMessageToAuthClient(
+  private async sendMessage(
     msg: Pattern,
     data: DataType,
   ): Promise<TokenPair | null> {

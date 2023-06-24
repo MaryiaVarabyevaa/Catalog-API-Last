@@ -1,10 +1,10 @@
-import { Field, ID, InputType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
-export class GetOrderIdInput {
+export class DeleteOrderInput {
   @Field(() => ID)
   id: number;
 
-  @Field(() => String)
-  paymentMethodId: string;
+  @Field(() => Int)
+  cartId: number;
 }

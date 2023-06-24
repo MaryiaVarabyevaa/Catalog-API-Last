@@ -1,15 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { AddProductInput, UpdateProductInput } from './dtos';
+import {
+  AddProductInput,
+  ClearCartInput,
+  UpdateProductInCartInput,
+} from './dtos';
 import { CART_SERVICE, Pattern } from './constants';
 import { Data } from './types';
+import { CartEntity } from './entities';
 
 @Injectable()
 export class CartService {
   constructor(@Inject(CART_SERVICE) private cartClient: ClientProxy) {}
 
-  async addProductToCart(addProductInput: AddProductInput, userId: number) {
-    const res = await this.sendMessage(Pattern.ADD_PRODUCT_TO_CART, {
+  async addProductToCart(
+    addProductInput: AddProductInput,
+    userId: number,
+  ): Promise<CartEntity> {
+    const res = await this.sendMessage<CartEntity>(Pattern.ADD_PRODUCT_TO_CART, {
       ...addProductInput,
       userId,
     });
@@ -17,27 +25,27 @@ export class CartService {
   }
 
   async updateProductInCart(
-    updateProductInput: UpdateProductInput,
+    updateProductInput: UpdateProductInCartInput,
     userId: number,
-  ) {
-    const res = await this.sendMessage(Pattern.UPDATE_CART, {
+  ): Promise<CartEntity> {
+    const res = await this.sendMessage<CartEntity>(Pattern.UPDATE_CART, {
       ...updateProductInput,
       userId,
     });
     return res;
   }
 
-  async clearCart(userId: number) {
-    const res = await this.sendMessage(Pattern.CLEAR_CART, { userId });
+  async clearCart(clearCartInput: ClearCartInput): Promise<boolean> {
+    const res = await this.sendMessage<boolean>(Pattern.CLEAR_CART, clearCartInput);
     return res;
   }
 
-  async getCurrentCart(userId: number) {
-    const res = await this.sendMessage(Pattern.GET_CURRENT_CART, { userId });
+  async getCurrentCart(userId: number): Promise<CartEntity> {
+    const res = await this.sendMessage<CartEntity>(Pattern.GET_CURRENT_CART, { userId });
     return res;
   }
 
-  private async sendMessage(msg: Pattern, data: Data) {
+  private async sendMessage<T>(msg: Pattern, data: Data): Promise<T> {
     const pattern = { cmd: msg };
     return await this.cartClient.send(pattern, { data }).toPromise();
   }

@@ -2,18 +2,19 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Response } from 'express';
 import { UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { User } from './entities';
 import { CreateUserInput, LoginUserInput } from './dtos';
 import { AtGuard, LocalAuthGuard, RtGuard } from './guards';
-import { ExpressRes, GetCurrentUserId } from './decorators';
+import { ExpressRes } from './decorators';
 import { clearCookies, setCookies } from './helpers';
 import { GetCurrentUser } from './decorators/get-current-user.decorator';
+import { GetCurrentUserId } from '../../common/decorators';
+// import { GetCurrentUserId } from '../../common/decorators';
 
 @Resolver('Auth')
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Query(() => [User])
+  @Query(() => String)
   async greet() {
     return 'Hello';
   }
