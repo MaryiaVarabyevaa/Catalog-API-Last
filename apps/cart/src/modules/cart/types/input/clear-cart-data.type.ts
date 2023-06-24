@@ -1,3 +1,3 @@
 export interface ClearCartData {
-  userId: number;
+  cartId: number;
 }

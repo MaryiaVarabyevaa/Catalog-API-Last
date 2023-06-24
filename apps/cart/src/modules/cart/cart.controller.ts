@@ -8,6 +8,7 @@ import {
   ClearCartData,
   CreateProductData,
   GetCurrentCartData,
+  GetCurrentCartToOrderData,
   UpdateProductData,
 } from './types';
 import { Cart } from './entities';
@@ -57,5 +58,35 @@ export class CartController {
     const res = await this.cartService.getCurrentCart(getCurrentCartData);
     this.rmqService.ack(context);
     return res;
+  }
+
+  @MessagePattern({ cmd: Pattern.GET_CURRENT_CART_TO_ORDER })
+  async handleGetCurrentCartToOrder(
+    @GetData() getCurrentCartData: GetCurrentCartToOrderData,
+    @Ctx() context: RmqContext,
+  ): Promise<Cart> {
+    const res = await this.cartService.getCurrentCartToOrder(
+      getCurrentCartData,
+    );
+    this.rmqService.ack(context);
+    return res;
+  }
+
+  @MessagePattern({ cmd: Pattern.COMMIT_GET_CART })
+  async handleCommitGetCart(
+    @GetData() getCurrentCartData: GetCurrentCartToOrderData,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.cartService.commitGetCart(getCurrentCartData);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.ROLLBACK_GET_CART })
+  async handleRollbackGetCart(
+    @GetData() getCurrentCartData: GetCurrentCartToOrderData,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.cartService.rollbackGetCart(getCurrentCartData);
+    this.rmqService.ack(context);
   }
 }

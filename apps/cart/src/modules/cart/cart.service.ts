@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RpcException } from '@nestjs/microservices';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Cart, Details } from './entities';
 import {
   ClearCartData,
   CreateProductData,
   GetCurrentCartData,
+  GetCurrentCartToOrderData,
   UpdateProductData,
 } from './types';
 
@@ -18,6 +21,7 @@ export class CartService {
     private cartRepository: Repository<Cart>,
     @InjectRepository(Details)
     private detailsRepository: Repository<Details>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async addProductToCart(product: CreateProductData): Promise<Cart> {
@@ -74,9 +78,8 @@ export class CartService {
         where: {
           cart_id: product.id,
           product_id: product.productId,
-        }
+        },
       });
-
 
       if (!isExistedDetails) {
         throw new RpcException('');
@@ -84,7 +87,6 @@ export class CartService {
 
       isExistedCart.currency = product.currency;
       await queryRunner.manager.save(isExistedCart);
-
 
       isExistedDetails.quantity = product.quantity;
       await queryRunner.manager.save(isExistedDetails);
@@ -102,21 +104,21 @@ export class CartService {
     }
   }
 
-  async clearCart({ userId }: ClearCartData): Promise<void> {
+  async clearCart({ cartId }: ClearCartData): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
       const cart = await queryRunner.manager.findOne(Cart, {
-        where: { user_id: userId },
+        where: { id: cartId },
       });
 
       if (!cart) {
         throw new RpcException('');
       }
 
-      await queryRunner.manager.delete(Details, { cart_id: cart.id });
-      await queryRunner.manager.delete(Cart, { id: cart.id });
+      await queryRunner.manager.softDelete(Details, { cart_id: cartId });
+      await queryRunner.manager.softDelete(Cart, { id: cartId });
 
       await queryRunner.commitTransaction();
     } catch (err) {
@@ -137,5 +139,43 @@ export class CartService {
     });
 
     return cart;
+  }
+
+  async getCurrentCartToOrder({
+    cartId,
+  }: GetCurrentCartToOrderData): Promise<Cart> {
+    const cart = await this.cartRepository.findOne({
+      where: {
+        id: cartId,
+      },
+      relations: {
+        details: true,
+      },
+    });
+
+    await this.cacheManager.set(`${cartId}-cart`, JSON.stringify(cart));
+
+    await this.clearCart({ cartId });
+
+    return cart;
+  }
+
+  async commitGetCart({ cartId }: GetCurrentCartToOrderData): Promise<void> {
+    try {
+      await this.cacheManager.del(`${cartId}-cart`);
+    } catch (err) {
+      return err;
+    }
+  }
+
+  async rollbackGetCart({ cartId }: GetCurrentCartToOrderData): Promise<void> {
+    const cachedCart = await this.cacheManager.get(`${cartId}-cart`);
+    // if (typeof cachedCart === 'string') {
+    //   const product = JSON.parse(cachedCart);
+    //   // await this.productRepository.save(product);
+    //   await this.cacheManager.del(`${cartId}-cart`);
+    // }
+    await this.cartRepository.restore(cartId);
+    await this.detailsRepository.restore({ cart_id: cartId });
   }
 }

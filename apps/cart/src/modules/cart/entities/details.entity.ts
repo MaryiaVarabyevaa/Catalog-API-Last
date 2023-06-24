@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -27,4 +28,7 @@ export class Details {
   @ManyToOne(() => Cart, (cart) => cart.details)
   @JoinColumn({ name: 'cart_id' })
   cart: Cart;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt?: Date;
 }

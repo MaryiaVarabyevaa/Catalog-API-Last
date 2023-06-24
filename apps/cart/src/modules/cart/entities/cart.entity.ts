@@ -1,5 +1,12 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Details } from './details.entity';
+import {Currency} from "../constants";
 
 @Entity()
 export class Cart {
@@ -9,9 +16,16 @@ export class Cart {
   @Column()
   user_id: number;
 
-  @Column()
-  currency: string;
+  @Column({
+    type: 'enum',
+    enum: Currency,
+    default: Currency.BYN,
+  })
+  currency: Currency;
 
   @OneToMany(() => Details, (details) => details.cart)
   details: Details[];
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt?: Date;
 }
