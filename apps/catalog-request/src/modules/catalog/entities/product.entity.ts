@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
+import { Currency } from '../constants';
 
 @Entity()
 export class Product {
@@ -21,8 +22,12 @@ export class Product {
   @Column()
   price: number;
 
-  @Column()
-  currency: string;
+  @Column({
+    type: 'enum',
+    enum: Currency,
+    default: Currency.BYN,
+  })
+  currency: Currency;
 
   @Column()
   img_url: string;

@@ -16,4 +16,6 @@ export enum Pattern {
   COMMIT_UPDATED_QUANTITY = 'commit-updated-quantity',
 
   CHECK_PRODUCT_QUANTITY = 'check-product-quantity',
+  COMMIT_PRODUCT_QUANTITY = 'commit-product-quantity',
+  ROLLBACK_PRODUCT_QUANTITY = 'rollback-product-quantity',
 }

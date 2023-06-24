@@ -1,4 +1,6 @@
+import { ProductInfo } from '../product-info';
+
 export interface UpdateQuantityData {
-  id: number;
-  rightQuantity: number;
+  operation: string;
+  data: ProductInfo[];
 }

@@ -1,17 +1,12 @@
 import { Controller } from '@nestjs/common';
-import {
-  Ctx,
-  EventPattern,
-  MessagePattern,
-  RmqContext,
-} from '@nestjs/microservices';
+import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import { RmqService } from '@app/common';
 import { Pattern } from './constants';
 import { CatalogService } from './catalog.service';
 import { GetData } from './decorator';
 import {
   CreateProductData,
-  DeleteProductData,
+  DeleteProductData, ProductInfo,
   UpdateProductData,
   UpdateQuantityData,
 } from './types';
@@ -55,11 +50,28 @@ export class CatalogController {
 
   @MessagePattern({ cmd: Pattern.CHECK_PRODUCT_QUANTITY })
   async handleUpdateQuantity(
-    @GetData() updateQuantityData: UpdateQuantityData,
+    @GetData() updateQuantityData: UpdateQuantityData[],
     @Ctx() context: RmqContext,
-  ): Promise<Product> {
-    const res = await this.catalogService.updateQuantity(updateQuantityData);
+  ): Promise<void> {
+    await this.catalogService.updateQuantity(updateQuantityData);
     this.rmqService.ack(context);
-    return res;
+  }
+
+  @MessagePattern({ cmd: Pattern.COMMIT_PRODUCT_QUANTITY })
+  async handleCommitUpdateQuantity(
+    @GetData() productInfo: ProductInfo[],
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.catalogService.commitProductQuantity(productInfo);
+    this.rmqService.ack(context);
+  }
+
+  @MessagePattern({ cmd: Pattern.ROLLBACK_PRODUCT_QUANTITY })
+  async handleRollbackUpdateQuantity(
+    @GetData() productInfo: ProductInfo[],
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    await this.catalogService.rollbackProductQuantity(productInfo);
+    this.rmqService.ack(context);
   }
 }

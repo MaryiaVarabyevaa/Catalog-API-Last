@@ -1,7 +1,7 @@
-import {UpdateCatalogState} from './update-catalog.state';
-import {Product} from '../entities';
-import {UpdateProductData} from '../types';
-import {ErrorMessages} from '../constants';
+import { UpdateCatalogState } from './update-catalog.state';
+import { Product } from '../entities';
+import { UpdateProductData } from '../types';
+import { ErrorMessages } from '../constants';
 
 export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
   async makeOperation(): Promise<Product> {
@@ -35,8 +35,19 @@ export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
       await queryRunner.release();
     }
   }
-  
-  private updateProduct(  product: Product, data: Pick<UpdateProductData,  "name" | "description" | "currency" | "img_url" | "price" | "totalQuantity">) {
+
+  private updateProduct(
+    product: Product,
+    data: Pick<
+      UpdateProductData,
+      | 'name'
+      | 'description'
+      | 'currency'
+      | 'img_url'
+      | 'price'
+      | 'totalQuantity'
+    >,
+  ) {
     product.name = data.name;
     product.description = data.description;
     product.img_url = data.img_url;

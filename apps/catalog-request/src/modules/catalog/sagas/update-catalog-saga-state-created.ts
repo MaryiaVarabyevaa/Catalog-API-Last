@@ -29,8 +29,7 @@ export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
     }
   }
 
-
-  private createProduct( productInfo: CreateProductData): Product {
+  private createProduct(productInfo: CreateProductData): Product {
     const newProduct = new Product();
     newProduct.name = productInfo.name;
     newProduct.description = productInfo.description;

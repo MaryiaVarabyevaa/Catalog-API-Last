@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './modules/catalog/entities';
+import { CacheModule, CacheStore } from '@nestjs/cache-manager';
+import redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
@@ -26,6 +28,14 @@ import { Product } from './modules/catalog/entities';
         logging: true,
       }),
       inject: [ConfigService],
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore as unknown as CacheStore,
+      socket: {
+        host: 'localhost',
+        port: 6379,
+      },
     }),
     CatalogModule,
   ],

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CATALOG_SERVICE, Pattern } from '../constants';
 import { ClientProxy } from '@nestjs/microservices';
-import { Data } from '../types';
+import { CATALOG_SERVICE, Pattern } from '../constants';
+import { Data, ProductInfo } from '../types';
 import { Product } from '../entities';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class SendMessageHelper {
     await this.sendMessage(Pattern.PRODUCT_DELETED, data);
   }
 
-  async updateProductQuantity(data: Data[]) {
+  async updateProductQuantity(data: Data) {
     const res = await this.sendMessage(Pattern.CHECK_PRODUCT_QUANTITY, data);
     return res;
   }
@@ -32,17 +32,17 @@ export class SendMessageHelper {
     return res;
   }
 
-  async commitUpdatedQuantity(data: Data[]) {
+  async commitUpdatedQuantity(data: ProductInfo[]) {
     const res = await this.sendMessage(Pattern.COMMIT_UPDATED_QUANTITY, data);
     return res;
   }
 
-  async rollbackProduct(data: Data) {
+  async rollbackProduct(data: ProductInfo[]) {
     const res = await this.sendMessage(Pattern.ROLLBACK_PRODUCT, data);
     return res;
   }
 
-  async rollbackDeleteNewProduct(data: Data) {
+  async rollbackDeleteNewProduct(data: ProductInfo[]) {
     const res = await this.sendMessage(
       Pattern.ROLLBACK_DELETE_NEW_PRODUCT,
       data,
@@ -50,19 +50,19 @@ export class SendMessageHelper {
     return res;
   }
 
-  async rollbackDeleteProduct(data: Data) {
+  async rollbackDeleteProduct(data: ProductInfo[]) {
     const res = await this.sendMessage(Pattern.ROLLBACK_DELETE_PRODUCT, data);
     return res;
   }
 
-  async rollbackUpdatedQuantity(data: Data[]) {
+  async rollbackUpdatedQuantity(data: ProductInfo[]) {
     const res = await this.sendMessage(Pattern.ROLLBACK_UPDATED_QUANTITY, data);
     return res;
   }
 
   private async sendMessage(
     msg: Pattern,
-    data: Data | Data[],
+    data: Data | ProductInfo[],
   ): Promise<Product> {
     const pattern = { cmd: msg };
     return await this.catalogClient.send(pattern, { data }).toPromise();
