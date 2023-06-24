@@ -8,6 +8,7 @@ import { Product } from './entities';
 import {
   CreateProductData,
   DeleteProductData,
+  QuantityData,
   UpdateProductData,
   UpdateQuantityData,
 } from './types';
@@ -21,7 +22,7 @@ export class ProductRequestService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  async createProduct(product: CreateProductData): Promise<Product> {
+  async createProduct(product: CreateProductData): Promise<void> {
     const isExistedProduct = await this.productRepository.findOne({
       where: { name: product.name },
     });
@@ -35,8 +36,7 @@ export class ProductRequestService {
       availableQuantity: product.totalQuantity,
     });
 
-    const savedProduct = await this.productRepository.save(newProduct);
-    return savedProduct;
+    await this.productRepository.save(newProduct);
   }
 
   async updatedProduct({ id, ...rest }: UpdateProductData): Promise<void> {
@@ -55,55 +55,43 @@ export class ProductRequestService {
   }
 
   async deletedProduct({ id }: DeleteProductData): Promise<void> {
-    const product = await this.checkProductExistence(id);
+    await this.checkProductExistence(id);
     await this.productRepository.softDelete(id);
   }
 
-  // async updateQuantityProduct({
-  //   id,
-  //   rightQuantity,
-  // }: UpdateQuantityData): Promise<void> {
-  //   const product = await this.checkProductExistence(id);
-  //
-  //   await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
-  //
-  //   if (product.availableQuantity >= rightQuantity) {
-  //     await this.productRepository.update(id, {
-  //       availableQuantity: product.availableQuantity - rightQuantity,
-  //     });
-  //   } else {
-  //     throw new RpcException(ErrorMessages.BAD_REQUEST);
-  //   }
-  // }
-
-  async updateQuantityProduct(updateQuantityData: UpdateQuantityData[]): Promise<void> {
-    updateQuantityData.map( async({ id, rightQuantity }) => {
+  async updateQuantityProduct({
+    data,
+    operation,
+  }: UpdateQuantityData): Promise<void> {
+    for (const { productId: id, rightQuantity } of data) {
+      let value: number;
       const product = await this.checkProductExistence(id);
-
       await this.cacheManager.set(`${id}-product`, JSON.stringify(product));
 
-      if (product.availableQuantity >= rightQuantity) {
-        await this.productRepository.update(id, {
-          availableQuantity: product.availableQuantity - rightQuantity,
-        });
+      if (operation === 'addition') {
+        value = product.availableQuantity + rightQuantity;
       } else {
-        throw new RpcException(ErrorMessages.BAD_REQUEST);
+        if (product.availableQuantity >= rightQuantity) {
+          value = product.availableQuantity - rightQuantity;
+        } else {
+          throw new RpcException(ErrorMessages.BAD_REQUEST);
+        }
       }
-    })
-  }
 
-  async commitProduct(id: number) {
-    try {
-      await this.cacheManager.del(`${id}-product`);
-    } catch (err) {
-      return err;
+      await this.productRepository.update(id, {
+        availableQuantity: value,
+      });
     }
   }
 
-  async commitUpdatedQuantity(data: UpdateQuantityData[]) {
-    data.map(async ({ id }) => {
+  async commitProduct(id: number): Promise<void> {
+    await this.cacheManager.del(`${id}-product`);
+  }
+
+  async commitUpdatedQuantity(quantityData: QuantityData[]): Promise<void> {
+    for (const { productId: id } of quantityData) {
       await this.commitProduct(id);
-    });
+    }
   }
 
   async rollbackDeleteNewProduct({ id }: DeleteProductData): Promise<void> {
@@ -111,7 +99,7 @@ export class ProductRequestService {
     await this.productRepository.delete(id);
   }
 
-  async rollbackProduct(id: number) {
+  async rollbackProduct(id: number): Promise<void> {
     const cachedProduct = await this.cacheManager.get(`${id}-product`);
     if (typeof cachedProduct === 'string') {
       const product = JSON.parse(cachedProduct);
@@ -124,10 +112,10 @@ export class ProductRequestService {
     await this.productRepository.restore(id);
   }
 
-  async rollbackUpdatedQuantity(updateQuantityData: UpdateQuantityData[]) {
-    updateQuantityData.map(async ({ id }) => {
+  async rollbackUpdatedQuantity(quantityData: QuantityData[]) {
+    for (const { productId: id } of quantityData) {
       await this.rollbackProduct(id);
-    });
+    }
   }
 
   private async checkProductExistence(id: number): Promise<Product> {

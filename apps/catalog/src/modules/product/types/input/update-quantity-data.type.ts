@@ -1,4 +1,6 @@
+import { QuantityData } from '../quantity-data.type';
+
 export interface UpdateQuantityData {
-  id: number;
-  rightQuantity: number;
+  operation: string;
+  data: QuantityData[];
 }

@@ -2,17 +2,17 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
-  Index,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
+import {Currency} from "../constants";
+
 
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Index()
   @Column()
   @Unique(['name'])
   name: string;
@@ -20,12 +20,15 @@ export class Product {
   @Column()
   description: string;
 
-  @Index()
   @Column()
   price: number;
 
-  @Column()
-  currency: string;
+  @Column({
+    type: 'enum',
+    enum: Currency,
+    default: Currency.BYN,
+  })
+  currency: Currency;
 
   @Column()
   img_url: string;

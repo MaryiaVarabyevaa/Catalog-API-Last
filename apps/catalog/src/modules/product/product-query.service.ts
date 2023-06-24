@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './entities';
 import { Repository } from 'typeorm';
-import { FindProductByIdData } from './types';
+import { Product } from './entities';
 
 @Injectable()
 export class ProductQueryService {
@@ -11,32 +10,13 @@ export class ProductQueryService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async findAllProducts(
-    page: number = 1,
-    pageSize: number = 10,
-    sortField: string = 'name',
-    sortOrder: 'ASC' | 'DESC' = 'ASC',
-    filter: any = {},
-  ) {
-    const query = this.productRepository
-      .createQueryBuilder('product')
-      .skip((page - 1) * pageSize)
-      .take(pageSize)
-      .orderBy(sortField, sortOrder);
-
-    Object.keys(filter).forEach((key) => {
-      query.andWhere(`product.${key} LIKE :${key}`, {
-        [key]: `%${filter[key]}%`,
-      });
-    });
-
-    const products = await query.getManyAndCount();
-
+  async findAllProducts(): Promise<Product[]> {
+    const products = await this.productRepository.find();
     return products;
   }
 
-  async findProductById({ id }: FindProductByIdData): Promise<Product> {
-    const product = await this.productRepository.findOne({ where: { id } });
-    return product;
-  }
+  // async findProductById({ id }: FindProductByIdData): Promise<Product> {
+  //   const product = await this.productRepository.findOne({ where: { id } });
+  //   return product;
+  // }
 }
