@@ -1,27 +1,13 @@
 import { Module } from '@nestjs/common';
+import { RmqModule } from '@app/common';
 import { AuthService } from './auth.service';
-import {RabbitMQModule} from "@golevelup/nestjs-rabbitmq";
-import {UserModule} from "../user/user.module";
-import {GraphQLModule} from "@nestjs/graphql";
-import {ApolloDriver} from "@nestjs/apollo";
-import {TokenModule} from "../token/token.module";
-// import {RabbitMQModule} from "@app/common";
+import { UserModule } from '../user/user.module';
+import { TokenModule } from '../token/token.module';
+import { AuthController } from './auth.controller';
 
 @Module({
-  imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'auth',
-          type: 'topic',
-        },
-      ],
-      uri: 'amqp://127.0.0.1',
-      // uri: 'amqp://rmq',
-    }),
-    UserModule,
-    TokenModule
-  ],
-  providers: [AuthService]
+  imports: [RmqModule, UserModule, TokenModule],
+  providers: [AuthService],
+  controllers: [AuthController],
 })
 export class AuthModule {}

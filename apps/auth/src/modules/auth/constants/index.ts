@@ -1,4 +1,2 @@
-export * from "./queue";
-export * from "./routing-key";
-export * from "./exchange";
-export * from "./error-message";
+export * from './error-message';
+export * from './pattern';

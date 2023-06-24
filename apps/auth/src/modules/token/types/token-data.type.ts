@@ -1,4 +1,4 @@
 export interface TokenData {
-    refreshToken: string;
-    userId: number;
+  refreshToken: string;
+  userId: number;
 }

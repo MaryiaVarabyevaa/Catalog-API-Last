@@ -1,3 +1,3 @@
 export interface RefreshToken {
-    rt: string;
+  rt: string;
 }

@@ -1,22 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { MicroserviceOptions } from '@nestjs/microservices';
 import { AppModule } from './app.module';
-import {WINSTON_MODULE_NEST_PROVIDER} from "nest-winston";
-import {Logger} from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Logger } from '@nestjs/common';
+import { RmqService } from '@app/common';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-      AppModule,
-      {
-        logger: false
-      }
-  );
+  const app = await NestFactory.create(AppModule);
 
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  const rmqService = app.get<RmqService>(RmqService);
+  app.connectMicroservice(rmqService.getOptions('AUTH'));
 
-  await app.init();
-
-  const logger = new Logger('Bootstrap');
-  logger.log(`Auth microservice started working`);
+  await app.startAllMicroservices();
 }
 bootstrap();

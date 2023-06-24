@@ -1,14 +1,13 @@
-import {Module} from '@nestjs/common';
-import {AuthModule} from "./modules/auth/auth.module";
-import {ConfigModule, ConfigService} from "@nestjs/config";
-import {UserModule} from "./modules/user/user.module";
-import {SessionModule} from "./modules/session/session.module";
-import {TypeOrmModule} from "@nestjs/typeorm";
-import {User} from "./modules/user/entities";
-import {Token} from "./modules/token/entities";
-import {WinstonModule} from "nest-winston";
-import {winstonConfig} from "@app/common";
-
+import { Module } from '@nestjs/common';
+import { AuthModule } from './modules/auth/auth.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserModule } from './modules/user/user.module';
+import { SessionModule } from './modules/session/session.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './modules/user/entities';
+import { Token } from './modules/token/entities';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from '@app/common';
 
 @Module({
   imports: [
@@ -28,14 +27,13 @@ import {winstonConfig} from "@app/common";
         entities: [User, Token],
         synchronize: true,
         autoLoadEntities: true,
-        logging: true
+        logging: true,
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
-    WinstonModule.forRoot(winstonConfig),
-      AuthModule,
-      UserModule,
-      SessionModule
+    AuthModule,
+    UserModule,
+    SessionModule,
   ],
 })
 export class AppModule {}

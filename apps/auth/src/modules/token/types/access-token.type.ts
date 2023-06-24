@@ -1,3 +1,3 @@
 export interface AccessToken {
-    at: string;
+  at: string;
 }

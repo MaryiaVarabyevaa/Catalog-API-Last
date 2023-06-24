@@ -1,1 +1,1 @@
-export * from "./expire-time";
+export * from './expire-time';
