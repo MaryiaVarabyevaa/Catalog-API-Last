@@ -13,13 +13,13 @@ export class UpdateCatalogSaga {
   private state: UpdateCatalogState;
 
   constructor(
-    public state: OperationState,
+    public status: OperationState,
     public data: Data | Data[],
     public sendMessageHelper: SendMessageHelper,
     public dataSource: DataSource,
     public cacheManager: Cache,
   ) {
-    this.setState(state);
+    this.setState(this.status);
   }
 
   setState(state: OperationState) {

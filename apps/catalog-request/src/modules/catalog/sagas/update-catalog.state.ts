@@ -1,5 +1,4 @@
-import { UpdateCatalogSaga } from './update-catalog.saga';
-import { Product } from '../entities';
+import {UpdateCatalogSaga} from './update-catalog.saga';
 
 export abstract class UpdateCatalogState {
   public saga: UpdateCatalogSaga;
@@ -8,5 +7,5 @@ export abstract class UpdateCatalogState {
     this.saga = saga;
   }
 
-  public abstract makeOperation(): Promise<Product>;
+  public abstract makeOperation();
 }

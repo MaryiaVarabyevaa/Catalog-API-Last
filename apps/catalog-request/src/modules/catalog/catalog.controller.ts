@@ -6,7 +6,8 @@ import { CatalogService } from './catalog.service';
 import { GetData } from './decorator';
 import {
   CreateProductData,
-  DeleteProductData, ProductInfo,
+  DeleteProductData,
+  ProductInfo,
   UpdateProductData,
   UpdateQuantityData,
 } from './types';

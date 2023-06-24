@@ -6,7 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities';
 import {
   CreateProductData,
-  DeleteProductData, ProductInfo,
+  DeleteProductData,
+  ProductInfo,
   UpdateProductData,
   UpdateQuantityData,
 } from './types';
@@ -75,9 +76,7 @@ export class CatalogService {
     await saga.getState().makeOperation();
   }
 
-  async commitProductQuantity(
-      productInfo: ProductInfo[],
-  ): Promise<void> {
+  async commitProductQuantity(productInfo: ProductInfo[]): Promise<void> {
     for (const { productId: id } of productInfo) {
       await this.cacheManager.del(`${id}-product`);
     }
@@ -85,9 +84,7 @@ export class CatalogService {
     await this.sendMessageHelper.commitUpdatedQuantity(productInfo);
   }
 
-  async rollbackProductQuantity(
-    productInfo: ProductInfo[],
-  ): Promise<void> {
+  async rollbackProductQuantity(productInfo: ProductInfo[]): Promise<void> {
     for (const { productId: id } of productInfo) {
       const cachedProduct = await this.cacheManager.get(`${id}-product`);
       if (typeof cachedProduct === 'string') {

@@ -1,10 +1,10 @@
 import { UpdateCatalogState } from './update-catalog.state';
 import { Product } from '../entities';
-import { ProductInfo, UpdateQuantityData } from '../types';
+import { UpdateQuantityData } from '../types';
 import { ErrorMessages } from '../constants';
 
 export class UpdateCatalogSagaStateUpdatedQuantity extends UpdateCatalogState {
-  async makeOperation(): Promise<Product> {
+  async makeOperation(): Promise<void> {
     const { data, operation } = this.saga.data as UpdateQuantityData;
     let productId: number;
     const queryRunner = this.saga.dataSource.createQueryRunner();
@@ -49,9 +49,7 @@ export class UpdateCatalogSagaStateUpdatedQuantity extends UpdateCatalogState {
       await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      await this.saga.sendMessageHelper.rollbackUpdatedQuantity(
-        data as ProductInfo,
-      );
+      await this.saga.sendMessageHelper.rollbackUpdatedQuantity(data);
       throw err;
     } finally {
       await queryRunner.release();

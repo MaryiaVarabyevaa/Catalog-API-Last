@@ -4,7 +4,7 @@ import { DeleteProductData } from '../types';
 import { ErrorMessages } from '../constants';
 
 export class UpdateCatalogSagaStateDeleted extends UpdateCatalogState {
-  async makeOperation(): Promise<Product> {
+  async makeOperation(): Promise<void> {
     const { id } = this.saga.data as DeleteProductData;
     const queryRunner = this.saga.dataSource.createQueryRunner();
     await queryRunner.connect();

@@ -37,12 +37,12 @@ export class SendMessageHelper {
     return res;
   }
 
-  async rollbackProduct(data: ProductInfo[]) {
+  async rollbackProduct(data: Data) {
     const res = await this.sendMessage(Pattern.ROLLBACK_PRODUCT, data);
     return res;
   }
 
-  async rollbackDeleteNewProduct(data: ProductInfo[]) {
+  async rollbackDeleteNewProduct(data: Data) {
     const res = await this.sendMessage(
       Pattern.ROLLBACK_DELETE_NEW_PRODUCT,
       data,
@@ -50,7 +50,7 @@ export class SendMessageHelper {
     return res;
   }
 
-  async rollbackDeleteProduct(data: ProductInfo[]) {
+  async rollbackDeleteProduct(data: Data) {
     const res = await this.sendMessage(Pattern.ROLLBACK_DELETE_PRODUCT, data);
     return res;
   }

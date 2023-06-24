@@ -20,9 +20,9 @@ export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
 
       this.updateProduct(existingProduct, rest);
 
-      const updatedProduct = await queryRunner.manager.save(existingProduct);
+      await queryRunner.manager.save(existingProduct);
 
-      await this.saga.sendMessageHelper.updateProduct({ id, ...rest });
+      const updatedProduct = await this.saga.sendMessageHelper.updateProduct({ id, ...rest });
 
       await this.saga.sendMessageHelper.commitProduct({ id });
       await queryRunner.commitTransaction();
