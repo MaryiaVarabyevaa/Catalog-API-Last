@@ -7,5 +7,5 @@ export abstract class CreateOrderState {
     this.saga = saga;
   }
 
-  public abstract makeOperation(): Promise<any>;
+  public abstract makeOperation();
 }

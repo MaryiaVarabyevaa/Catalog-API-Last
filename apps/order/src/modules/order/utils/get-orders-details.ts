@@ -1,7 +1,7 @@
 import { Order } from '../entities';
-import { UserOrderDetails } from '../types';
+import { ProductInfo } from '../types';
 
-export const getOrdersDetails = (orders: Order[]): UserOrderDetails[] => {
+export const getOrdersDetails = (orders: Order[]) => {
   const values = orders.map((order) => ({
     id: order.id,
     status: order.status,

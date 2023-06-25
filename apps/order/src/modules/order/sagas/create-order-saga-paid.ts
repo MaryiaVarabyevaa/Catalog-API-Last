@@ -5,7 +5,7 @@ import { OrderDesc, OrderStatus } from '../constants';
 import { makePaymentDesc, transformData } from '../utils';
 
 export class CreateOrderSagaPaid extends CreateOrderState {
-  async makeOperation(): Promise<any> {
+  async makeOperation(): Promise<Partial<Order>> {
     const { id, paymentMethodId } = this.saga.data as PayOrderData;
     const queryRunner = this.saga.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -44,8 +44,11 @@ export class CreateOrderSagaPaid extends CreateOrderState {
         await queryRunner.manager.save(Order, order);
       }
 
+      const res = await this.saga.createOrderHelper.findOrder(id, queryRunner);
+      console.log(res)
       await queryRunner.commitTransaction();
-      return;
+
+      return res;
     } catch (err) {
       await queryRunner.rollbackTransaction();
     } finally {

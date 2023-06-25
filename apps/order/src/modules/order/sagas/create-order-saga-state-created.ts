@@ -2,9 +2,10 @@ import { CreateOrderState } from './create-order.state';
 import { CreateOrderData, GetProductInfo, ProductInfo } from '../types';
 import { getProductInfo, makePaymentDesc } from '../utils';
 import { Operation, OrderDesc } from '../constants';
+import { Order } from '../entities';
 
 export class CreateOrderSagaStateCreated extends CreateOrderState {
-  async makeOperation(): Promise<any> {
+  async makeOperation(): Promise<Partial<Order>> {
     const cartId = this.saga.data as CreateOrderData;
     let productInfo: ProductInfo[];
     let paymentId: string;
@@ -28,10 +29,15 @@ export class CreateOrderSagaStateCreated extends CreateOrderState {
       const payment = await this.saga.stripeService.createOrder(orderInfo);
       paymentId = payment.id;
 
-      await this.saga.createOrderHelper.createNewOrder(cart, paymentId);
+      const newOrder = await this.saga.createOrderHelper.createNewOrder(
+        cart,
+        paymentId,
+      );
 
       await this.commit(cartId, productInfo);
       await queryRunner.commitTransaction();
+
+      return newOrder;
     } catch (err) {
       await this.rollback(cartId, productInfo, paymentId);
       await queryRunner.rollbackTransaction();

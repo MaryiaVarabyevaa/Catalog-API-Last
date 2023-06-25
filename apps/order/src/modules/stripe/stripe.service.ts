@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { Currency, OrderStatus } from '../order/constants';
+import { Currency } from '../order/constants';
 import { Order } from '../order/types';
 
 @Injectable()
@@ -20,8 +20,6 @@ export class StripeService {
       currency: order.currency,
       description: order.description,
     });
-
-    // console.log(paymentIntent);
 
     return this.paymentIntentToOrder(paymentIntent);
   }
@@ -61,6 +59,7 @@ export class StripeService {
 
       const paymentIntent = await this.stripe.paymentIntents.confirm(orderId, {
         payment_method: paymentMethod.id,
+        // payment_method: paymentMethodId
       });
 
       return this.paymentIntentToOrder(paymentIntent);

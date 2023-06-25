@@ -10,13 +10,13 @@ import { CreateOrderSagaStateCreated } from './create-order-saga-state-created';
 import { StripeService } from '../../stripe/stripe.service';
 import { CreateOrderSagaPaid } from './create-order-saga-paid';
 import { CreateOrderSagaDeleted } from './create-order-saga-deleted';
-import { OrderStatusSaga } from '../constants/order-status-saga';
+import { OrderStatusSaga } from '../constants';
 
 export class CreateOrderSaga {
   public state: CreateOrderState;
 
   constructor(
-    public state: OrderStatusSaga,
+    public status: OrderStatusSaga,
     public data: Data,
     public dataSource: DataSource,
     public sendMessageToCartHelper: SendMessageToCartHelper,
@@ -24,11 +24,11 @@ export class CreateOrderSaga {
     public stripeService: StripeService,
     public createOrderHelper: CreateOrderHelper,
   ) {
-    this.setState(state);
+    this.setState(status);
   }
 
-  setState(state: OrderStatusSaga) {
-    switch (state) {
+  setState(status: OrderStatusSaga) {
+    switch (status) {
       case OrderStatusSaga.CREATED:
         this.state = new CreateOrderSagaStateCreated();
         break;

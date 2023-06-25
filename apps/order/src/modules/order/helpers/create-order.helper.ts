@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import {
-  CreateOrderData,
-  GetProductInfo,
-  Product,
-  ProductInfo,
-} from '../types';
+import { DataSource, QueryRunner } from 'typeorm';
+import { GetProductInfo, Product } from '../types';
 import { Details, Order } from '../entities';
-import { OrderDesc, OrderStatus } from '../constants';
-import { getProductInfo, makePaymentDesc } from '../utils';
+import { OrderStatus } from '../constants';
 
 @Injectable()
 export class CreateOrderHelper {
   constructor(private dataSource: DataSource) {}
 
-  async createNewOrder(cart: GetProductInfo, paymentId: string) {
+  async createNewOrder(
+    cart: GetProductInfo,
+    paymentId: string,
+  ): Promise<Partial<Order>> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -27,9 +24,14 @@ export class CreateOrderHelper {
         const newDetail = this.createDetails(productInfo, savedOrder.id);
         return queryRunner.manager.save(newDetail);
       });
+
       await Promise.all(detailsPromises);
 
       await queryRunner.commitTransaction();
+
+      const order = await this.findOrder(savedOrder.id, queryRunner);
+
+      return order;
     } catch (err) {
       await queryRunner.rollbackTransaction();
     } finally {
@@ -53,5 +55,25 @@ export class CreateOrderHelper {
     newDetail.price = productInfo.price;
     newDetail.order_id = orderId;
     return newDetail;
+  }
+
+   async findOrder(
+    id: number,
+    queryRunner: QueryRunner,
+  ): Promise<Partial<Order>> {
+    const order = await queryRunner.manager
+      .createQueryBuilder(Order, 'order')
+      .leftJoinAndSelect('order.details', 'details')
+      .select([
+        'order.id',
+        'order.status',
+        'details.product_id',
+        'details.quantity',
+        'details.price',
+      ])
+      .where('order.id = :id', { id })
+      .getOne();
+
+    return order;
   }
 }

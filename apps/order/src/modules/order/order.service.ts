@@ -1,12 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy } from '@nestjs/microservices';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Details, Order } from './entities';
 import {CATALOG_REQUEST_SERVICE, OrderStatus, OrderStatusSaga} from './constants';
-import { CreateOrderData, PayOrderData, DeleteOrderData } from './types';
+import {CreateOrderData, PayOrderData, DeleteOrderData, UserId} from './types';
 import { StripeService } from '../stripe/stripe.service';
-import { getOrdersDetails } from './utils';
 import {
   CreateOrderHelper,
   SendMessageToCartHelper,
@@ -21,15 +20,18 @@ export class OrderService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(Details)
     private readonly detailsRepository: Repository<Details>,
-    @Inject(CATALOG_REQUEST_SERVICE) private catalogClient: ClientProxy,
+    @Inject(CATALOG_REQUEST_SERVICE)
+    private readonly catalogClient: ClientProxy,
     private readonly stripeService: StripeService,
-    private dataSource: DataSource,
-    private sendMessageToCartHelper: SendMessageToCartHelper,
-    private sendMessageToCatalogHelper: SendMessageToCatalogHelper,
-    private createOrderHelper: CreateOrderHelper,
+    private readonly dataSource: DataSource,
+    private readonly sendMessageToCartHelper: SendMessageToCartHelper,
+    private readonly sendMessageToCatalogHelper: SendMessageToCatalogHelper,
+    private readonly createOrderHelper: CreateOrderHelper,
   ) {}
 
-  async createNewOrder(createOrderData: CreateOrderData): Promise<Order> {
+  async createNewOrder(
+    createOrderData: CreateOrderData,
+  ): Promise<Partial<Order>> {
     const saga = new CreateOrderSaga(
       OrderStatusSaga.CREATED,
       createOrderData,
@@ -56,10 +58,9 @@ export class OrderService {
     );
 
     await saga.getState().makeOperation();
-    return true;
   }
 
-  async payOrder(payOrderData: PayOrderData): Promise<Order> {
+  async payOrder(payOrderData: PayOrderData): Promise<Partial<Order>> {
     const saga = new CreateOrderSaga(
       OrderStatusSaga.PAID,
       payOrderData,
@@ -74,37 +75,43 @@ export class OrderService {
     return order;
   }
 
-  // async getAllOrdersByUserId({ userId }: GetUserId) {
-  //   // const orders = await this.orderRepository.find({
-  //   //   where: {
-  //   //     user_id: userId,
-  //   //     status: OrderStatus.SUCCEEDED,
-  //   //   },
-  //   //   relations: {
-  //   //     details: true,
-  //   //   },
-  //   // });
-  //   //
-  //   // const orderDetails = getOrdersDetails(orders);
-  //   //
-  //   // return true;
-  // }
+  async getAllOrdersByUserId({ userId }: UserId): Promise<Partial<Order>> {
+    const latestOrder = await this.dataSource.manager
+        .createQueryBuilder(Order, 'order')
+        .leftJoinAndSelect('order.details', 'details')
+        .select([
+          'order.id',
+          'order.status',
+          'details.product_id',
+          'details.quantity',
+          'details.price',
+        ])
+        .where('order.user_id = :user_id AND order.status = :status', {
+          user_id: userId,
+          status: OrderStatus.SUCCEEDED
+        })
+        .getMany();
 
-  // async getLatestUserOrder({ userId }: GetUserId) {
-  //   const latestOrder = await this.orderRepository.find({
-  //     where: {
-  //       user_id: userId,
-  //       status: In([OrderStatus.SUCCEEDED, OrderStatus.INCOMPLETE]),
-  //     },
-  //     order: {
-  //       created_at: 'DESC',
-  //     },
-  //     relations: {
-  //       details: true,
-  //     },
-  //     take: 1,
-  //   });
-  //
-  //   const orderDetails = getOrdersDetails(latestOrder)[0];
-  // }
+    return latestOrder;
+  }
+
+  async getLatestUserOrder({ userId }: UserId): Promise<Partial<Order>> {
+    const latestOrder = await this.dataSource.manager
+        .createQueryBuilder(Order, 'order')
+        .leftJoinAndSelect('order.details', 'details')
+        .select([
+          'order.id',
+          'order.status',
+          'details.product_id',
+          'details.quantity',
+          'details.price',
+        ])
+        .where('order.user_id = :user_id AND order.status = :status', {
+          user_id: userId,
+          status: OrderStatus.SUCCEEDED
+        })
+        .getOne();
+
+    return latestOrder;
+  }
 }
