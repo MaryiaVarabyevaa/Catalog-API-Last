@@ -14,7 +14,6 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt-access') {
         },
       ]),
       secretOrKey: configService.get<string>('JWT_ACCESS_SECRET'),
-      // passReqToCallback: true,
     });
   }
 

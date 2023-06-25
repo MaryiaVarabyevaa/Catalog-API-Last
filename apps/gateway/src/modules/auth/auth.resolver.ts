@@ -8,7 +8,6 @@ import { ExpressRes } from './decorators';
 import { clearCookies, setCookies } from './helpers';
 import { GetCurrentUser } from './decorators/get-current-user.decorator';
 import { GetCurrentUserId } from '../../common/decorators';
-// import { GetCurrentUserId } from '../../common/decorators';
 
 @Resolver('Auth')
 export class AuthResolver {

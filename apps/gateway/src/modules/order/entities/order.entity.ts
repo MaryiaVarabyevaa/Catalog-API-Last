@@ -9,24 +9,21 @@ export class Order {
   @Field()
   status: string;
 
+  @Field(() => Currency)
+  currency: Currency;
+
   @Field(() => [Product])
-  products: Product[];
+  details: Product[];
 }
 
 @ObjectType()
 export class Product {
   @Field(() => ID)
-  productId: number;
-
-  @Field()
-  name: string;
+  product_id: number;
 
   @Field(() => Int)
   quantity: number;
 
   @Field(() => Float)
   price: number;
-
-  @Field(() => Currency)
-  currency: Currency;
 }

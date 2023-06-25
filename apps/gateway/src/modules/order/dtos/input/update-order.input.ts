@@ -1,6 +1,6 @@
 import { Field, Float, ID, InputType } from '@nestjs/graphql';
-import {IsEnum, IsNotEmpty, IsNumber, IsPositive} from "class-validator";
-import {Type} from "class-transformer";
+import { IsEnum, IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Currency } from '../../constants';
 
 @InputType()

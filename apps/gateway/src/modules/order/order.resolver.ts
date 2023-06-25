@@ -1,56 +1,48 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Order } from './entities';
-import {
-  CreateOrderInput,
-  DeleteOrderInput,
-  PayOrderInput,
-  UpdateOrderInput,
-} from './dtos';
-import { UseGuards } from '@nestjs/common';
+import { CreateOrderInput, DeleteOrderInput, PayOrderInput } from './dtos';
 import { AtGuard } from '../auth/guards';
 import { GetCurrentUserId } from '../../common/decorators';
 
 @Resolver('Order')
+@UseGuards(AtGuard)
 export class OrderResolver {
   constructor(private readonly orderService: OrderService) {}
 
-  @Query(() => Boolean)
-  @UseGuards(AtGuard)
-  async getAllUserOrders(@GetCurrentUserId() userId: number): Promise<boolean> {
+  @Query(() => [Order])
+  async getAllUserOrders(@GetCurrentUserId() userId: number): Promise<Order[]> {
     const res = await this.orderService.getAllUserOrder(userId);
-    return true;
+    return res;
   }
 
-  @Query(() => Boolean)
-  @UseGuards(AtGuard)
-  async getLatestUserOrder(
-    @GetCurrentUserId() userId: number,
-  ): Promise<boolean> {
+  @Query(() => Order)
+  async getLatestUserOrder(@GetCurrentUserId() userId: number): Promise<Order> {
     const res = await this.orderService.getLatestUserOrder(userId);
-    return true;
+    return res;
   }
 
-  // @Mutation(() => Order)
-  @Mutation(() => Boolean)
-  @UseGuards(AtGuard)
+  @Mutation(() => Order)
   async createOrder(
     @Args('createOrder') createOrderInput: CreateOrderInput,
     @GetCurrentUserId() userId: number,
-  ) {
+  ): Promise<Order> {
     const res = await this.orderService.createOrder(createOrderInput, userId);
-    return true;
+    return res;
   }
 
   @Mutation(() => Boolean)
-  async deleteOrder(@Args('deleteOrder') deleteOrderInput: DeleteOrderInput) {
-    const res = await this.orderService.deleteOrder(deleteOrderInput);
+  async deleteOrder(@Args('deleteOrder') deleteOrderInput: DeleteOrderInput): Promise<boolean> {
+    await this.orderService.deleteOrder(deleteOrderInput);
     return true;
   }
 
-  @Mutation(() => Boolean)
-  async payOrder(@Args('payOrder') payOrderInput: PayOrderInput) {
+  @Mutation(() => Order)
+  async payOrder(
+    @Args('payOrder') payOrderInput: PayOrderInput,
+  ): Promise<Order> {
     const res = await this.orderService.payOrder(payOrderInput);
-    return true;
+    return res;
   }
 }

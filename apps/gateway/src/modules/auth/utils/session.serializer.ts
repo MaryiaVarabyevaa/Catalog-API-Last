@@ -13,7 +13,7 @@ export class SessionSerializer extends PassportSerializer {
     done: (err: Error, user: any) => void,
   ): Promise<void> {
     const a = { id: 7 };
-    console.log('user', user);
+    // console.log('user', user);
     done(null, { id: a.id });
   }
 

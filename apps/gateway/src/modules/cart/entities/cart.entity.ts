@@ -1,5 +1,5 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
-import {Currency} from "../../order/constants";
+import { Currency } from '../../order/constants';
 
 @ObjectType()
 export class CartEntity {
@@ -9,12 +9,12 @@ export class CartEntity {
   @Field(() => Currency)
   currency: Currency;
 
-  @Field(() => [Product])
-  details: Product[];
+  @Field(() => [ProductInCart])
+  details: ProductInCart[];
 }
 
 @ObjectType()
-export class Product {
+export class ProductInCart {
   @Field(() => ID)
   id: number;
 

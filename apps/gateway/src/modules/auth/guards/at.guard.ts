@@ -2,7 +2,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { Observable } from 'rxjs';
 
 export class AtGuard extends AuthGuard('jwt-access') {
   constructor() {

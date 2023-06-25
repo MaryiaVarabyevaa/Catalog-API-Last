@@ -1,5 +1,5 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
-import {IsNotEmpty, IsNumber, IsPositive} from "class-validator";
+import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
 
 @InputType()
 export class DeleteOrderInput {

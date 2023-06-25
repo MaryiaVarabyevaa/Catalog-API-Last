@@ -1,6 +1,6 @@
 import { Field, InputType, ID, Float, Int } from '@nestjs/graphql';
 import { Currency } from '../../constants';
-import {IsNotEmpty, IsNumber, IsPositive} from "class-validator";
+import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
 
 // @InputType()
 // export class CreateOrderInput {
