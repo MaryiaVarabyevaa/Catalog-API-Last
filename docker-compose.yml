@@ -38,6 +38,7 @@ services:
       - /usr/src/app/node_modules
     ports:
       - '5000:5000'
+      - "9229:9229"
     networks:
       - mynetwork
 
@@ -49,6 +50,8 @@ services:
     depends_on:
       rmq:
         condition: service_healthy
+      authDB:
+         condition: service_healthy
     env_file:
       - ./apps/auth/.env
     volumes:
@@ -64,6 +67,8 @@ services:
       dockerfile: ./apps/order/Dockerfile
     depends_on:
       rmq:
+        condition: service_healthy
+      orderDB:
         condition: service_healthy
     env_file:
       - ./apps/order/.env
@@ -81,6 +86,8 @@ services:
     depends_on:
       rmq:
         condition: service_healthy
+      catalogDB:
+        condition: service_healthy
     env_file:
       - ./apps/catalog/.env
     volumes:
@@ -90,12 +97,14 @@ services:
       mynetwork:
 
   catalog-request:
-    container_name: catalog-request
+    container_name: product-request
     build:
       context: .
       dockerfile: ./apps/catalog-request/Dockerfile
     depends_on:
       rmq:
+        condition: service_healthy
+      catalogRequestDB:
         condition: service_healthy
     env_file:
       - ./apps/catalog-request/.env
@@ -113,6 +122,8 @@ services:
     depends_on:
       rmq:
         condition: service_healthy
+      cartDB:
+        condition: service_healthy
     env_file:
       - ./apps/cart/.env
     volumes:
@@ -121,6 +132,118 @@ services:
     networks:
       mynetwork:
 
+  catalogDB:
+    container_name: catalogDB
+    image: postgres:12
+    env_file:
+      - ./apps/catalog/.env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5432:5432
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - catalogDB_data:/var/lib/postgresql/data
+    networks:
+      mynetwork:
+
+  catalogRequestDB:
+    container_name: catalogRequestDB
+    image: postgres:12
+    env_file:
+      - ./apps/catalog-request/.env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5433:5432
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - catalogRequestDB_data:/var/lib/postgresql/data
+    networks:
+      mynetwork:
+
+  orderDB:
+    container_name: orderDB
+    image: postgres:12
+    env_file:
+      - ./apps/order/.env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5434:5432
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - orderDB_data:/var/lib/postgresql/data
+    networks:
+      mynetwork:
+
+  cartDB:
+    container_name: cartDB
+    image: postgres:12
+    env_file:
+      - ./apps/cart/.env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5435:5432
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - cartDB_data:/var/lib/postgresql/data
+    networks:
+      mynetwork:
+
+  authDB:
+    container_name: authDB
+    image: postgres:12
+    env_file:
+      - ./apps/auth/.env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5436:5432
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - authDB_data:/var/lib/postgresql/data
+    networks:
+      mynetwork:
+
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  catalogDB_data:
+  catalogRequestDB_data:
+  orderDB_data:
+  cartDB_data:
+  authDB_data:
