@@ -1,3 +1,3 @@
 export interface FindProductByIdData {
-    id: number;
+  id: number;
 }

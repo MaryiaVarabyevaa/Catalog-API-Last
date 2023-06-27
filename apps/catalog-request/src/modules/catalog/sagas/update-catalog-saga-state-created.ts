@@ -1,6 +1,7 @@
 import { UpdateCatalogState } from './update-catalog.state';
 import { Product } from '../entities';
 import { CreateProductData } from '../types';
+import { winstonLoggerConfig } from '@app/common';
 
 export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
   async makeOperation(): Promise<Product> {
@@ -18,12 +19,18 @@ export class UpdateCatalogSagaStateCreated extends UpdateCatalogState {
 
       await queryRunner.commitTransaction();
 
+      winstonLoggerConfig.info(
+        `New product with id ${savedProduct.id} created`,
+      );
+
       return savedProduct;
     } catch (err) {
       await queryRunner.rollbackTransaction();
       await this.saga.sendMessageHelper.rollbackDeleteNewProduct({
         id: product.id,
       });
+
+      winstonLoggerConfig.error(`Failed to create new product: ${err.message}`);
     } finally {
       await queryRunner.release();
     }

@@ -33,7 +33,9 @@ export class OrderResolver {
   }
 
   @Mutation(() => Boolean)
-  async deleteOrder(@Args('deleteOrder') deleteOrderInput: DeleteOrderInput): Promise<boolean> {
+  async deleteOrder(
+    @Args('deleteOrder') deleteOrderInput: DeleteOrderInput,
+  ): Promise<boolean> {
     await this.orderService.deleteOrder(deleteOrderInput);
     return true;
   }

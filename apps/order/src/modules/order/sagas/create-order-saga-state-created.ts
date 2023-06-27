@@ -3,6 +3,7 @@ import { CreateOrderData, GetProductInfo, ProductInfo } from '../types';
 import { getProductInfo, makePaymentDesc } from '../utils';
 import { Operation, OrderDesc } from '../constants';
 import { Order } from '../entities';
+import { winstonLoggerConfig } from '@app/common';
 
 export class CreateOrderSagaStateCreated extends CreateOrderState {
   async makeOperation(): Promise<Partial<Order>> {
@@ -37,10 +38,14 @@ export class CreateOrderSagaStateCreated extends CreateOrderState {
       await this.commit(cartId, productInfo);
       await queryRunner.commitTransaction();
 
+      winstonLoggerConfig.info(`Created new order with id ${newOrder.id}`);
+
       return newOrder;
     } catch (err) {
       await this.rollback(cartId, productInfo, paymentId);
       await queryRunner.rollbackTransaction();
+
+      winstonLoggerConfig.error(`Failed to create new order: ${err.message}`);
     } finally {
       await queryRunner.release();
     }

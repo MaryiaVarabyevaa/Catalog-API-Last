@@ -20,20 +20,6 @@ import { Product } from './modules/product/entities';
         port: 6379,
       },
     }),
-
-    // CacheModule.registerAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) => ({
-    //     isGlobal: true,
-    //     store: redisStore,
-    //     socket: {
-    //       // host: configService.get<string>('REDIS_HOST'),
-    //       // port: configService.get<number>('REDIS_PORT')
-    //
-    //     }
-    //   }),
-    //   inject: [ConfigService],
-    // }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

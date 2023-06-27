@@ -2,6 +2,7 @@ import { UpdateCatalogState } from './update-catalog.state';
 import { Product } from '../entities';
 import { UpdateProductData } from '../types';
 import { ErrorMessages } from '../constants';
+import { winstonLoggerConfig } from '@app/common';
 
 export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
   async makeOperation(): Promise<Product> {
@@ -22,15 +23,24 @@ export class UpdateCatalogSagaStateUpdated extends UpdateCatalogState {
 
       await queryRunner.manager.save(existingProduct);
 
-      const updatedProduct = await this.saga.sendMessageHelper.updateProduct({ id, ...rest });
+      const updatedProduct = await this.saga.sendMessageHelper.updateProduct({
+        id,
+        ...rest,
+      });
 
       await this.saga.sendMessageHelper.commitProduct({ id });
       await queryRunner.commitTransaction();
+
+      winstonLoggerConfig.info(`Product with id ${id} updated`);
 
       return updatedProduct;
     } catch (err) {
       await this.saga.sendMessageHelper.rollbackProduct({ id });
       await queryRunner.rollbackTransaction();
+
+      winstonLoggerConfig.error(
+        `Failed to update product with id ${id}: ${err.message}`,
+      );
     } finally {
       await queryRunner.release();
     }

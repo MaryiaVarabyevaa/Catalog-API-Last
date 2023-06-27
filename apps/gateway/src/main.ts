@@ -1,14 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import { AppModule } from './app.module';
+import { WinstonLogger } from '@app/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: false,
+  });
 
   app.use(cookieParser());
 
@@ -26,6 +28,8 @@ async function bootstrap() {
   );
   app.use(passport.initialize());
   app.use(passport.session());
+
+  app.useLogger(new WinstonLogger());
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);

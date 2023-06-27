@@ -4,7 +4,8 @@ import { RmqService } from '@app/common';
 import { Pattern } from './constants';
 import {
   CreateProductData,
-  DeleteProductData, FindProductByIdData,
+  DeleteProductData,
+  FindProductByIdData,
   QuantityData,
   UpdateProductData,
   UpdateQuantityData,
@@ -48,7 +49,9 @@ export class ProductController {
     @GetData() createProductData: CreateProductData,
     @Ctx() context: RmqContext,
   ): Promise<Product> {
-    const res = await this.productRequestService.createProduct(createProductData);
+    const res = await this.productRequestService.createProduct(
+      createProductData,
+    );
     this.rmqService.ack(context);
     return res;
   }
@@ -58,7 +61,9 @@ export class ProductController {
     @GetData() updateProductData: UpdateProductData,
     @Ctx() context: RmqContext,
   ): Promise<Product> {
-    const res = await this.productRequestService.updatedProduct(updateProductData);
+    const res = await this.productRequestService.updatedProduct(
+      updateProductData,
+    );
     this.rmqService.ack(context);
     return res;
   }

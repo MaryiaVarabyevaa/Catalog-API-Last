@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { winstonLoggerConfig } from '@app/common';
 import { UserService } from '../user/user.service';
 import { TokenService } from '../token/token.service';
 import { User } from '../user/entities';
@@ -20,8 +21,11 @@ export class AuthService {
     firstName,
     lastName,
   }: CreateUserData): Promise<TokenPair> {
+    winstonLoggerConfig.info(`Registering user with email ${email}`);
+
     const user = await this.userService.findUserByEmail(email);
     if (user) {
+      winstonLoggerConfig.warn(`User ${email} has been already registered`);
       return null;
     }
     const hashPassword = await this.hashData(password);
@@ -34,25 +38,40 @@ export class AuthService {
 
     const newUser = await this.userService.addUser(newUserInfo);
     const tokens = this.generateTokens(newUser);
+
+    winstonLoggerConfig.info(`User ${email} has been registered`);
+
     return tokens;
   }
 
   async login({ email }: LoginUserData): Promise<TokenPair> {
+    winstonLoggerConfig.info(`Logging in user with email ${email}`);
+
     const user = await this.userService.findUserByEmail(email);
     const tokens = this.generateTokens(user);
+
+    winstonLoggerConfig.info(`User ${email} has been logged in`);
+
     return tokens;
   }
 
   async logout(id: number): Promise<void> {
+    winstonLoggerConfig.info(`Logging out user with id ${id}`);
+
     await this.tokenService.removeRefreshToken(id);
+
+    winstonLoggerConfig.info(`User with id ${id} has been logged out`);
   }
 
   async refreshTokens({
     id,
     rt,
   }: RefreshTokensData): Promise<TokenPair | null> {
+    winstonLoggerConfig.info(`Refreshing tokens for user with id ${id}`);
+
     const user = await this.userService.findUserById(id);
     if (!user) {
+      winstonLoggerConfig.warn(`User with id ${id} was not found`);
       return null;
     }
     const isTokenEqual = await this.tokenService.compareRefreshToken(
@@ -61,10 +80,18 @@ export class AuthService {
     );
 
     if (!isTokenEqual) {
+      winstonLoggerConfig.warn(
+        `A non-valid token was passed for user with id ${id}`,
+      );
       return null;
     }
 
     const tokens = this.generateTokens(user);
+
+    winstonLoggerConfig.info(
+      `New tokens have been generated for user with id ${id}`,
+    );
+
     return tokens;
   }
 

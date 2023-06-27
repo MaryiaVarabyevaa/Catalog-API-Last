@@ -3,8 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy } from '@nestjs/microservices';
 import { DataSource, Repository } from 'typeorm';
 import { Details, Order } from './entities';
-import {CATALOG_REQUEST_SERVICE, OrderStatus, OrderStatusSaga} from './constants';
-import {CreateOrderData, PayOrderData, DeleteOrderData, UserId} from './types';
+import {
+  CATALOG_REQUEST_SERVICE,
+  OrderStatus,
+  OrderStatusSaga,
+} from './constants';
+import {
+  CreateOrderData,
+  PayOrderData,
+  DeleteOrderData,
+  UserId,
+} from './types';
 import { StripeService } from '../stripe/stripe.service';
 import {
   CreateOrderHelper,
@@ -12,6 +21,7 @@ import {
   SendMessageToCatalogHelper,
 } from './helpers';
 import { CreateOrderSaga } from './sagas';
+import { winstonLoggerConfig } from '@app/common';
 
 @Injectable()
 export class OrderService {
@@ -43,6 +53,9 @@ export class OrderService {
     );
 
     const newOrder = await saga.getState().makeOperation();
+
+    winstonLoggerConfig.info(`New order created with id ${newOrder.id}`);
+
     return newOrder;
   }
 
@@ -58,6 +71,8 @@ export class OrderService {
     );
 
     await saga.getState().makeOperation();
+
+    winstonLoggerConfig.info(`Order with id ${deleteOrderData.id} deleted`);
   }
 
   async payOrder(payOrderData: PayOrderData): Promise<Partial<Order>> {
@@ -72,45 +87,56 @@ export class OrderService {
     );
 
     const order = await saga.getState().makeOperation();
+
+    winstonLoggerConfig.info(`Order with id ${payOrderData.id} paid`);
+
     return order;
   }
 
   async getAllOrdersByUserId({ userId }: UserId): Promise<Partial<Order>> {
     const latestOrder = await this.dataSource.manager
-        .createQueryBuilder(Order, 'order')
-        .leftJoinAndSelect('order.details', 'details')
-        .select([
-          'order.id',
-          'order.status',
-          'details.product_id',
-          'details.quantity',
-          'details.price',
-        ])
-        .where('order.user_id = :user_id AND order.status = :status', {
-          user_id: userId,
-          status: OrderStatus.SUCCEEDED
-        })
-        .getMany();
+      .createQueryBuilder(Order, 'order')
+      .leftJoinAndSelect('order.details', 'details')
+      .select([
+        'order.id',
+        'order.status',
+        'details.product_id',
+        'details.quantity',
+        'details.price',
+      ])
+      .where('order.user_id = :user_id AND order.status = :status', {
+        user_id: userId,
+        status: OrderStatus.SUCCEEDED,
+      })
+      .getMany();
+
+    winstonLoggerConfig.info(
+      `Retrieved ${latestOrder.length} orders for user with id ${userId}`,
+    );
 
     return latestOrder;
   }
 
   async getLatestUserOrder({ userId }: UserId): Promise<Partial<Order>> {
     const latestOrder = await this.dataSource.manager
-        .createQueryBuilder(Order, 'order')
-        .leftJoinAndSelect('order.details', 'details')
-        .select([
-          'order.id',
-          'order.status',
-          'details.product_id',
-          'details.quantity',
-          'details.price',
-        ])
-        .where('order.user_id = :user_id AND order.status = :status', {
-          user_id: userId,
-          status: OrderStatus.SUCCEEDED
-        })
-        .getOne();
+      .createQueryBuilder(Order, 'order')
+      .leftJoinAndSelect('order.details', 'details')
+      .select([
+        'order.id',
+        'order.status',
+        'details.product_id',
+        'details.quantity',
+        'details.price',
+      ])
+      .where('order.user_id = :user_id AND order.status = :status', {
+        user_id: userId,
+        status: OrderStatus.SUCCEEDED,
+      })
+      .getOne();
+
+    winstonLoggerConfig.info(
+      `Retrieved order with id ${latestOrder.id} for user with id ${userId}`,
+    );
 
     return latestOrder;
   }

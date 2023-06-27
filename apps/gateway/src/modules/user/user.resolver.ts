@@ -30,15 +30,4 @@ export class UserResolver {
     setCookies(res, rt, at);
     return true;
   }
-
-  // @Mutation(() => Boolean)
-  // @UseGuards(AtGuard)
-  // async changeUserRole(
-  //   @GetCurrentUserId() userId: number,
-  //   @ExpressRes() res: Response,
-  // ): Promise<boolean> {
-  //   const { rt, at } = await this.userService.changeUserRole(userId);
-  //   setCookies(res, rt, at);
-  //   return true;
-  // }
 }

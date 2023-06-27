@@ -6,8 +6,7 @@ import { SessionModule } from './modules/session/session.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './modules/user/entities';
 import { Token } from './modules/token/entities';
-import { WinstonModule } from 'nest-winston';
-import { winstonConfig } from '@app/common';
+import { TokenModule } from './modules/token/token.module';
 
 @Module({
   imports: [
@@ -34,6 +33,7 @@ import { winstonConfig } from '@app/common';
     AuthModule,
     UserModule,
     SessionModule,
+    TokenModule,
   ],
 })
 export class AppModule {}

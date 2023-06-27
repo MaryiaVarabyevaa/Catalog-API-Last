@@ -57,7 +57,7 @@ export class CreateOrderHelper {
     return newDetail;
   }
 
-   async findOrder(
+  async findOrder(
     id: number,
     queryRunner: QueryRunner,
   ): Promise<Partial<Order>> {

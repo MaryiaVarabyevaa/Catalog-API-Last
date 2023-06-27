@@ -3,6 +3,7 @@ import { Order } from '../entities';
 import { PayOrderData } from '../types';
 import { OrderDesc, OrderStatus } from '../constants';
 import { makePaymentDesc, transformData } from '../utils';
+import { winstonLoggerConfig } from '@app/common';
 
 export class CreateOrderSagaPaid extends CreateOrderState {
   async makeOperation(): Promise<Partial<Order>> {
@@ -45,12 +46,20 @@ export class CreateOrderSagaPaid extends CreateOrderState {
       }
 
       const res = await this.saga.createOrderHelper.findOrder(id, queryRunner);
-      console.log(res)
+
       await queryRunner.commitTransaction();
+
+      winstonLoggerConfig.info(
+        `Paid order with id ${id} and status ${order.status}`,
+      );
 
       return res;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+
+      winstonLoggerConfig.error(
+        `Failed to pay order with id ${id}: ${err.message}`,
+      );
     } finally {
       await queryRunner.release();
     }

@@ -3,6 +3,7 @@ import { Order } from '../entities';
 import { getProductInfo } from '../utils';
 import { Operation, OrderStatus } from '../constants';
 import { DeleteOrderData, ProductInfo } from '../types';
+import { winstonLoggerConfig } from '@app/common';
 
 export class CreateOrderSagaDeleted extends CreateOrderState {
   async makeOperation(): Promise<any> {
@@ -32,9 +33,15 @@ export class CreateOrderSagaDeleted extends CreateOrderState {
         productInfo,
       );
       await queryRunner.commitTransaction();
+
+      winstonLoggerConfig.info(`Deleted order with id ${id}`);
     } catch (err) {
       await this.rollback(cartId, productInfo);
       await queryRunner.rollbackTransaction();
+
+      winstonLoggerConfig.error(
+        `Failed to delete order with id ${id}: ${err.message}`,
+      );
     } finally {
       await queryRunner.release();
     }

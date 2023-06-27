@@ -1,7 +1,8 @@
-import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Directive, Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Currency } from '../../order/constants';
 
 @ObjectType()
+@Directive('@key(fields: "id")')
 export class ProductEntity {
   @Field(() => ID)
   id: number;

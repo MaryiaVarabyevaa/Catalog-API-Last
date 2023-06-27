@@ -4,7 +4,12 @@ import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import { Pattern } from './constants';
 import { OrderService } from './order.service';
 import { GetData } from './decorators';
-import {CreateOrderData, DeleteOrderData, PayOrderData, UserId} from './types';
+import {
+  CreateOrderData,
+  DeleteOrderData,
+  PayOrderData,
+  UserId,
+} from './types';
 import { Order } from './entities';
 
 @Controller()
@@ -46,18 +51,18 @@ export class OrderController {
 
   @MessagePattern({ cmd: Pattern.GET_LATEST_USER_ORDER })
   async handleGetLatestUserOrder(
-      @GetData() userId: UserId,
-      @Ctx() context: RmqContext,
+    @GetData() userId: UserId,
+    @Ctx() context: RmqContext,
   ): Promise<Partial<Order>> {
-   const res = await this.orderService.getLatestUserOrder(userId);
+    const res = await this.orderService.getLatestUserOrder(userId);
     this.rmqService.ack(context);
     return res;
   }
 
   @MessagePattern({ cmd: Pattern.GET_ALL_USER_ORDERS })
   async handleGetLatestUserOrder(
-      @GetData() userId: UserId,
-      @Ctx() context: RmqContext,
+    @GetData() userId: UserId,
+    @Ctx() context: RmqContext,
   ): Promise<Partial<Order>> {
     const res = await this.orderService.getAllOrdersByUserId(userId);
     this.rmqService.ack(context);

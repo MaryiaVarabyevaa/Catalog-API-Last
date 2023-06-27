@@ -23,6 +23,7 @@ export class AuthService {
   }
 
   async login(loginUserInput: LoginUserInput): Promise<TokenPair> {
+    // winstonLogger.info('This is an info message');
     const res = await this.sendMessage(Pattern.LOGIN, loginUserInput);
     return res;
   }

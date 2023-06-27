@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { winstonLoggerConfig } from '@app/common';
 import { Cart, Details } from './entities';
 import {
   ClearCartData,
@@ -25,6 +26,10 @@ export class CartService {
   ) {}
 
   async addProductToCart(product: CreateProductData): Promise<Cart> {
+    winstonLoggerConfig.info(
+      `Adding product to cart for user with id ${product.userId}`,
+    );
+
     const { userId, newCart, ...rest } = product;
     let cartId: number;
     const queryRunner = this.dataSource.createQueryRunner();
@@ -38,7 +43,9 @@ export class CartService {
         const savedProduct = await queryRunner.manager.save(newProduct);
         cartId = savedProduct.id;
       } else {
-        const cart = await queryRunner.manager.findOne(Cart, { where: { user_id: userId } });
+        const cart = await queryRunner.manager.findOne(Cart, {
+          where: { user_id: userId },
+        });
         cartId = cart.id;
       }
 
@@ -55,6 +62,11 @@ export class CartService {
       const newProductInCart = await this.getCurrentCart({
         userId: product.userId,
       });
+
+      winstonLoggerConfig.info(
+        `Product has been added to cart for user with id ${product.userId}`,
+      );
+
       return newProductInCart;
     } catch (err) {
       await queryRunner.rollbackTransaction();
@@ -64,6 +76,10 @@ export class CartService {
   }
 
   async updateCart(product: UpdateProductData): Promise<Cart> {
+    winstonLoggerConfig.info(
+      `Updating cart for user with id ${product.userId}`,
+    );
+
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -99,6 +115,11 @@ export class CartService {
       const updatedProductInCart = await this.getCurrentCart({
         userId: product.userId,
       });
+
+      winstonLoggerConfig.info(
+        `Cart has been updated for user with id ${product.userId}`,
+      );
+
       return updatedProductInCart;
     } catch (err) {
       await queryRunner.rollbackTransaction();
@@ -108,6 +129,8 @@ export class CartService {
   }
 
   async clearCart({ cartId }: ClearCartData): Promise<void> {
+    winstonLoggerConfig.info(`Clearing cart with id ${cartId}`);
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -124,6 +147,8 @@ export class CartService {
       await queryRunner.manager.softDelete(Cart, { id: cartId });
 
       await queryRunner.commitTransaction();
+
+      winstonLoggerConfig.info(`Cart with id ${cartId} has been cleared`);
     } catch (err) {
       await queryRunner.rollbackTransaction();
     } finally {
@@ -132,6 +157,8 @@ export class CartService {
   }
 
   async getCurrentCart({ userId }: GetCurrentCartData): Promise<Cart> {
+    winstonLoggerConfig.info(`Getting current cart for user with id ${userId}`);
+
     const cart = await this.cartRepository.findOne({
       where: {
         user_id: userId,
@@ -141,12 +168,18 @@ export class CartService {
       },
     });
 
+    winstonLoggerConfig.info(
+      `Current cart for user with id ${userId}: ${JSON.stringify(cart)}`,
+    );
+
     return cart;
   }
 
   async getCurrentCartToOrder({
     cartId,
   }: GetCurrentCartToOrderData): Promise<Cart> {
+    winstonLoggerConfig.info(`Getting current cart to order with id ${cartId}`);
+
     const cart = await this.cartRepository.findOne({
       where: {
         id: cartId,
@@ -160,25 +193,41 @@ export class CartService {
 
     await this.clearCart({ cartId });
 
+    winstonLoggerConfig.info(`Cart with id ${cartId} has been cleared`);
+
     return cart;
   }
 
   async commitGetCart({ cartId }: GetCurrentCartToOrderData): Promise<void> {
+    winstonLoggerConfig.info(`Committing cart with id ${cartId}`);
+
     try {
       await this.cacheManager.del(`${cartId}-cart`);
     } catch (err) {
+      winstonLoggerConfig.error(
+        `Failed to delete cart with id ${cartId}: ${err.message}`,
+      );
+
       return err;
     }
+
+    winstonLoggerConfig.info(`Cart with id ${cartId} deleted`);
   }
 
   async rollbackGetCart({ cartId }: GetCurrentCartToOrderData): Promise<void> {
-    const cachedCart = await this.cacheManager.get(`${cartId}-cart`);
-    // if (typeof cachedCart === 'string') {
-    //   const product = JSON.parse(cachedCart);
-    //   // await this.productRepository.save(product);
-    //   await this.cacheManager.del(`${cartId}-cart`);
-    // }
-    await this.cartRepository.restore(cartId);
-    await this.detailsRepository.restore({ cart_id: cartId });
+    winstonLoggerConfig.info(`Rolling back cart with id ${cartId}`);
+
+    try {
+      await this.cartRepository.restore(cartId);
+      await this.detailsRepository.restore({ cart_id: cartId });
+    } catch (err) {
+      winstonLoggerConfig.error(
+        `Failed to rollback cart with id ${cartId}: ${err.message}`,
+      );
+
+      throw err;
+    }
+
+    winstonLoggerConfig.info(`Cart with id ${cartId} rolled back`);
   }
 }

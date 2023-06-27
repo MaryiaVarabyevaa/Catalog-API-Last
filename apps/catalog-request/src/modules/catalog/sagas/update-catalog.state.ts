@@ -1,4 +1,4 @@
-import {UpdateCatalogSaga} from './update-catalog.saga';
+import { UpdateCatalogSaga } from './update-catalog.saga';
 
 export abstract class UpdateCatalogState {
   public saga: UpdateCatalogSaga;
